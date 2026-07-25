@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://razbiram.com/schemas/ingest-envelope.v1.schema.json",
+  "title": "razbiram screen-to-learn ingest envelope v1",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "ingestId",
+    "createdAt",
+    "sourceKind",
+    "artifacts",
+    "sourceContext",
+    "capabilities"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "ingest-envelope.v1"
+    },
+    "ingestId": {
+      "type": "string",
+      "pattern": "^ing_[A-Za-z0-9_-]+$"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "sourceKind": {
+      "enum": [
+        "browser-extension",
+        "controlled-browser",
+        "extension-bundle",
+        "image-upload",
+        "pdf-upload",
+        "text-input",
+        "synthetic-fixture"
+      ]
+    },
+    "artifacts": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 500,
+      "items": {
+        "$ref": "#/$defs/artifact"
+      }
+    },
+    "sourceContext": {
+      "type": "object",
+      "properties": {
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255
+        },
+        "locale": {
+          "type": "string",
+          "pattern": "^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})*$"
+        },
+        "origin": {
+          "type": "string",
+          "maxLength": 2048
+        },
+        "path": {
+          "type": "string",
+          "maxLength": 2048
+        }
+      },
+      "additionalProperties": false
+    },
+    "capabilities": {
+      "type": "object",
+      "required": [
+        "semanticSnapshot",
+        "geometry",
+        "answerRevealSequence"
+      ],
+      "properties": {
+        "semanticSnapshot": {
+          "type": "boolean"
+        },
+        "geometry": {
+          "type": "boolean"
+        },
+        "answerRevealSequence": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "$defs": {
+    "artifact": {
+      "type": "object",
+      "required": [
+        "artifactId",
+        "role",
+        "mediaType",
+        "sha256",
+        "bytes"
+      ],
+      "properties": {
+        "artifactId": {
+          "type": "string",
+          "pattern": "^art_[A-Za-z0-9_-]+$"
+        },
+        "role": {
+          "enum": [
+            "source-image",
+            "source-pdf",
+            "source-text",
+            "semantic-snapshot",
+            "viewport",
+            "region"
+          ]
+        },
+        "mediaType": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 127
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

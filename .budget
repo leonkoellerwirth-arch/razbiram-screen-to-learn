@@ -1,0 +1,4 @@
+# Budget ceilings — the ratchet (CONSTITUTION §4). Raise ONLY in a dedicated commit, never to
+# silence a regression. Re-baseline deliberately with: scripts/budget.sh --update
+DOC_TOKENS_MAX=7620
+SRC_LOC_MAX=0

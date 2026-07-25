@@ -1,0 +1,782 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://razbiram.com/schemas/capture-ir.v1.schema.json",
+  "title": "razbiram screen-to-learn Capture IR v1 (draft)",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "sessionId",
+    "source",
+    "target",
+    "deck",
+    "cards"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "capture-ir.v1"
+    },
+    "sessionId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source": {
+      "type": "object",
+      "required": [
+        "kind",
+        "policy",
+        "origin",
+        "path",
+        "capturedAt"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "browser-extension",
+            "controlled-browser",
+            "extension-bundle",
+            "image-upload",
+            "pdf-upload",
+            "text-input",
+            "synthetic-fixture"
+          ]
+        },
+        "policy": {
+          "enum": [
+            "user-upload",
+            "first-party-owned",
+            "permission-confirmed",
+            "third-party-observe"
+          ]
+        },
+        "origin": {
+          "type": "string",
+          "minLength": 1
+        },
+        "path": {
+          "type": "string"
+        },
+        "capturedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false
+    },
+    "target": {
+      "type": "object",
+      "required": [
+        "profile",
+        "capabilities"
+      ],
+      "properties": {
+        "profile": {
+          "type": "string",
+          "minLength": 1
+        },
+        "capabilities": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "deck": {
+      "$ref": "#/$defs/deck"
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/evidence"
+      }
+    },
+    "cards": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/card"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "localizedText": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "deck": {
+      "type": "object",
+      "required": [
+        "deckKey",
+        "title",
+        "description",
+        "level",
+        "difficulty",
+        "languages",
+        "tags"
+      ],
+      "properties": {
+        "deckKey": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "bookKey": {
+          "type": "string",
+          "minLength": 1
+        },
+        "title": {
+          "$ref": "#/$defs/localizedText"
+        },
+        "description": {
+          "$ref": "#/$defs/localizedText"
+        },
+        "level": {
+          "type": "string",
+          "minLength": 1
+        },
+        "difficulty": {
+          "enum": [
+            "beginner",
+            "intermediate",
+            "advanced"
+          ]
+        },
+        "languages": {
+          "type": "object",
+          "required": [
+            "source",
+            "target"
+          ],
+          "properties": {
+            "source": {
+              "type": "string",
+              "minLength": 2
+            },
+            "target": {
+              "type": "string",
+              "minLength": 2
+            }
+          },
+          "additionalProperties": false
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "evidencedLocalizedText": {
+      "type": "object",
+      "required": [
+        "value",
+        "evidence",
+        "confidence"
+      ],
+      "properties": {
+        "value": {
+          "$ref": "#/$defs/localizedText"
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "option": {
+      "type": "object",
+      "required": [
+        "optionId",
+        "text",
+        "isCorrect",
+        "evidence"
+      ],
+      "properties": {
+        "optionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "isCorrect": {
+          "type": "boolean"
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "review": {
+      "type": "object",
+      "required": [
+        "status",
+        "blockingReasons",
+        "reviewedBy",
+        "reviewedAt"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "needs-review",
+            "approved",
+            "rejected"
+          ]
+        },
+        "blockingReasons": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "reviewedBy": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "reviewedAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false
+    },
+    "rights": {
+      "type": "object",
+      "required": [
+        "basis",
+        "licenseNotes",
+        "approvedForPublication"
+      ],
+      "properties": {
+        "basis": {
+          "enum": [
+            "user-authored",
+            "licensed",
+            "public-domain",
+            "permission-confirmed",
+            "personal-use-unconfirmed",
+            "unconfirmed"
+          ]
+        },
+        "licenseNotes": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "approvedForPublication": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "card": {
+      "type": "object",
+      "required": [
+        "draftId",
+        "cardId",
+        "sourceId",
+        "family",
+        "prompt",
+        "review",
+        "rights"
+      ],
+      "properties": {
+        "draftId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "cardId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sourceId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "family": {
+          "enum": [
+            "single-choice",
+            "multiple-select",
+            "true-false",
+            "matching",
+            "typed",
+            "flashcard",
+            "image-occlusion"
+          ]
+        },
+        "prompt": {
+          "$ref": "#/$defs/evidencedLocalizedText"
+        },
+        "statement": {
+          "$ref": "#/$defs/evidencedLocalizedText"
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/option"
+          },
+          "minItems": 2
+        },
+        "correctOptionIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "answer": {
+          "type": "boolean"
+        },
+        "labels": {
+          "type": "object",
+          "required": [
+            "true",
+            "false"
+          ],
+          "properties": {
+            "true": {
+              "type": "string",
+              "minLength": 1
+            },
+            "false": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        "leftItems": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/matchingItem"
+          },
+          "minItems": 1
+        },
+        "rightItems": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/matchingItem"
+          },
+          "minItems": 1
+        },
+        "correctPairs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/matchingPair"
+          },
+          "minItems": 1
+        },
+        "acceptableAnswers": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "requiredKeywords": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "front": {
+          "$ref": "#/$defs/evidencedLocalizedText"
+        },
+        "back": {
+          "$ref": "#/$defs/evidencedLocalizedText"
+        },
+        "baseImageArtifactId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "occlusionRegions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/occlusionRegion"
+          },
+          "minItems": 1
+        },
+        "scoring": {
+          "type": "object",
+          "required": [
+            "mode",
+            "points"
+          ],
+          "properties": {
+            "mode": {
+              "enum": [
+                "single-best-answer",
+                "all-or-nothing",
+                "partial-credit"
+              ]
+            },
+            "points": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          },
+          "additionalProperties": false
+        },
+        "answerEvidenceTier": {
+          "enum": [
+            "source-verified",
+            "reviewer-confirmed",
+            "source-ambiguous",
+            "model-inferred",
+            "unknown"
+          ]
+        },
+        "review": {
+          "$ref": "#/$defs/review"
+        },
+        "rights": {
+          "$ref": "#/$defs/rights"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "family": {
+                "const": "single-choice"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "options",
+              "correctOptionIds",
+              "answerEvidenceTier"
+            ],
+            "properties": {
+              "correctOptionIds": {
+                "maxItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "family": {
+                "const": "multiple-select"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "options",
+              "correctOptionIds",
+              "scoring",
+              "answerEvidenceTier"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "family": {
+                "const": "true-false"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "statement",
+              "answer",
+              "labels",
+              "answerEvidenceTier"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "family": {
+                "const": "matching"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "leftItems",
+              "rightItems",
+              "correctPairs",
+              "answerEvidenceTier"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "family": {
+                "const": "typed"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "acceptableAnswers",
+              "answerEvidenceTier"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "family": {
+                "const": "flashcard"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "front",
+              "back",
+              "answerEvidenceTier"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "family": {
+                "const": "image-occlusion"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "baseImageArtifactId",
+              "occlusionRegions",
+              "answerEvidenceTier"
+            ]
+          }
+        }
+      ],
+      "additionalProperties": true
+    },
+    "matchingItem": {
+      "type": "object",
+      "required": [
+        "itemId",
+        "text",
+        "evidence"
+      ],
+      "properties": {
+        "itemId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "matchingPair": {
+      "type": "object",
+      "required": [
+        "leftItemId",
+        "rightItemId",
+        "evidence"
+      ],
+      "properties": {
+        "leftItemId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rightItemId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "occlusionRegion": {
+      "type": "object",
+      "required": [
+        "regionId",
+        "altText",
+        "geometry",
+        "evidence"
+      ],
+      "properties": {
+        "regionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "altText": {
+          "$ref": "#/$defs/localizedText"
+        },
+        "geometry": {
+          "type": "object",
+          "required": [
+            "x",
+            "y",
+            "width",
+            "height"
+          ],
+          "properties": {
+            "x": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "y": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "width": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 1
+            },
+            "height": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "evidence": {
+      "type": "object",
+      "required": [
+        "evidenceId",
+        "kind",
+        "captureId",
+        "sourceRole",
+        "authority",
+        "extractor",
+        "runId"
+      ],
+      "properties": {
+        "evidenceId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "enum": [
+            "dom",
+            "aria",
+            "screenshot-region",
+            "ocr",
+            "visible-feedback",
+            "reviewer"
+          ]
+        },
+        "captureId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "artifactId": {
+          "type": "string"
+        },
+        "sourceRole": {
+          "enum": [
+            "question",
+            "option",
+            "answer-key",
+            "explanation",
+            "image"
+          ]
+        },
+        "authority": {
+          "enum": [
+            "content",
+            "user-selection",
+            "solution",
+            "reviewer"
+          ]
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "extractor": {
+          "type": "string",
+          "minLength": 1
+        },
+        "runId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": true
+    }
+  }
+}

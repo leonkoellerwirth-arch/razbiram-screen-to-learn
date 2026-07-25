@@ -1,0 +1,64 @@
+{
+  "schemaId": "studywithme-bg.learncard.v1",
+  "deckKey": "synthetic-multiple-select-01",
+  "bookKey": "synthetic-demo",
+  "meta": {
+    "title": {
+      "en": "Multiple select proposal"
+    },
+    "description": {
+      "en": "Proposed output; requires the mcq.multiple-select.v1 target capability."
+    },
+    "level": "undergraduate",
+    "tags": [
+      "synthetic",
+      "multiple-select"
+    ],
+    "difficulty": "beginner",
+    "estimatedMinutes": 1,
+    "cardCount": 1,
+    "languages": {
+      "source": "en",
+      "target": "en"
+    },
+    "source": {
+      "kind": "synthetic-fixture",
+      "rightsBasis": "user-authored"
+    }
+  },
+  "cards": [
+    {
+      "cardId": "q-0001",
+      "type": "mcq",
+      "selectionMode": "multiple",
+      "question": {
+        "en": "Select all prime numbers."
+      },
+      "options": [
+        {
+          "optionId": "opt_a",
+          "text": "2",
+          "isCorrect": true
+        },
+        {
+          "optionId": "opt_b",
+          "text": "4",
+          "isCorrect": false
+        },
+        {
+          "optionId": "opt_c",
+          "text": "5",
+          "isCorrect": true
+        }
+      ],
+      "correctOptionIds": [
+        "opt_a",
+        "opt_c"
+      ],
+      "scoring": {
+        "mode": "all-or-nothing",
+        "points": 1
+      }
+    }
+  ]
+}

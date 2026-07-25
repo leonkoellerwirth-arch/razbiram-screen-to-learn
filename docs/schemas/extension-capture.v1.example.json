@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "extension-capture.v1",
+  "captureId": "cap_01JEXAMPLE",
+  "createdAt": "2026-07-25T12:00:00Z",
+  "extension": {
+    "browser": "chrome",
+    "extensionVersion": "0.1.0",
+    "protocolVersion": "1.0"
+  },
+  "page": {
+    "origin": "https://example.edu",
+    "path": "/practice",
+    "title": "Biophysics practice",
+    "locale": "en",
+    "viewport": {
+      "width": 1440,
+      "height": 900,
+      "devicePixelRatio": 2
+    }
+  },
+  "captureMode": "once",
+  "questionFingerprint": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "artifacts": [
+    {
+      "artifactId": "art_semantic",
+      "role": "semantic-snapshot",
+      "mediaType": "application/json",
+      "path": "semantic/question.json",
+      "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "bytes": 8400
+    },
+    {
+      "artifactId": "art_viewport",
+      "role": "viewport",
+      "mediaType": "image/png",
+      "path": "artifacts/viewport.png",
+      "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "bytes": 302400
+    }
+  ],
+  "privacy": {
+    "queryStripped": true,
+    "fragmentStripped": true,
+    "sensitiveFieldsExcluded": true,
+    "scriptsExcluded": true
+  }
+}

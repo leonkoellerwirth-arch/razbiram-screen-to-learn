@@ -1,0 +1,54 @@
+{
+  "schemaId": "studywithme-bg.learncard.v1",
+  "deckKey": "synthetic-true-false-01",
+  "bookKey": "synthetic-demo",
+  "meta": {
+    "title": {
+      "en": "True or false"
+    },
+    "description": {
+      "en": "Synthetic compatibility example."
+    },
+    "level": "undergraduate",
+    "tags": [
+      "synthetic",
+      "true-false"
+    ],
+    "difficulty": "beginner",
+    "estimatedMinutes": 1,
+    "cardCount": 1,
+    "languages": {
+      "source": "en",
+      "target": "en"
+    },
+    "source": {
+      "kind": "synthetic-fixture",
+      "rightsBasis": "user-authored"
+    }
+  },
+  "cards": [
+    {
+      "cardId": "q-0001",
+      "type": "mcq",
+      "sourceFormat": "true-false",
+      "question": {
+        "en": "A photon has zero rest mass."
+      },
+      "correctAnswer": "True",
+      "options": [
+        {
+          "text": "True",
+          "isCorrect": true
+        },
+        {
+          "text": "False",
+          "isCorrect": false
+        }
+      ],
+      "scoring": {
+        "mode": "single-best-answer",
+        "points": 1
+      }
+    }
+  ]
+}

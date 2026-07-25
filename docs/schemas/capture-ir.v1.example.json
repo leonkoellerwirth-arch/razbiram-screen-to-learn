@@ -1,0 +1,104 @@
+{
+  "schemaVersion": "capture-ir.v1",
+  "sessionId": "ses_01JEXAMPLE",
+  "source": {
+    "kind": "synthetic-fixture",
+    "policy": "user-upload",
+    "origin": "local-fixture",
+    "path": "synthetic/multi-select.html",
+    "capturedAt": "2026-07-25T12:00:00Z"
+  },
+  "target": {
+    "profile": "studywithme-bg.learncard.v1",
+    "capabilities": [
+      "mcq.single",
+      "mcq.true-false",
+      "matching",
+      "typed",
+      "flashcard",
+      "image-occlusion"
+    ]
+  },
+  "deck": {
+    "deckKey": "synthetic-demo-01",
+    "bookKey": "synthetic-demo",
+    "title": {
+      "en": "Synthetic capture demo"
+    },
+    "description": {
+      "en": "Owned fixture for contract testing."
+    },
+    "level": "undergraduate",
+    "difficulty": "intermediate",
+    "languages": {
+      "source": "en",
+      "target": "en"
+    },
+    "tags": [
+      "synthetic"
+    ]
+  },
+  "cards": [
+    {
+      "draftId": "draft_multi_001",
+      "cardId": "q-0001",
+      "sourceId": "src_multi_001",
+      "family": "multiple-select",
+      "prompt": {
+        "value": {
+          "en": "Select all prime numbers."
+        },
+        "evidence": [
+          "ev_question_dom"
+        ],
+        "confidence": 1.0
+      },
+      "options": [
+        {
+          "optionId": "opt_a",
+          "text": "2",
+          "isCorrect": true,
+          "evidence": [
+            "ev_key_a"
+          ]
+        },
+        {
+          "optionId": "opt_b",
+          "text": "4",
+          "isCorrect": false,
+          "evidence": [
+            "ev_key_b"
+          ]
+        },
+        {
+          "optionId": "opt_c",
+          "text": "5",
+          "isCorrect": true,
+          "evidence": [
+            "ev_key_c"
+          ]
+        }
+      ],
+      "correctOptionIds": [
+        "opt_a",
+        "opt_c"
+      ],
+      "scoring": {
+        "mode": "all-or-nothing",
+        "points": 1
+      },
+      "answerEvidenceTier": "source-verified",
+      "review": {
+        "status": "approved",
+        "blockingReasons": [],
+        "reviewedBy": "local-reviewer",
+        "reviewedAt": "2026-07-25T12:05:00Z"
+      },
+      "rights": {
+        "basis": "user-authored",
+        "licenseNotes": "Synthetic fixture.",
+        "approvedForPublication": true
+      }
+    }
+  ]
+}

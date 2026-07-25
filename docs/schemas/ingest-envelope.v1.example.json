@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "ingest-envelope.v1",
+  "ingestId": "ing_01JEXAMPLE",
+  "createdAt": "2026-07-25T12:00:00Z",
+  "sourceKind": "image-upload",
+  "artifacts": [
+    {
+      "artifactId": "art_a1b2c3",
+      "role": "source-image",
+      "mediaType": "image/png",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "bytes": 182400
+    }
+  ],
+  "sourceContext": {
+    "displayName": "biophysics-question-01.png",
+    "locale": "en"
+  },
+  "capabilities": {
+    "semanticSnapshot": false,
+    "geometry": true,
+    "answerRevealSequence": false
+  }
+}
