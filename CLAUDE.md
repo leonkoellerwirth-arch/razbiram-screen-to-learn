@@ -5,9 +5,21 @@ repository.
 
 ## Status
 
-Documentation-first. No runtime code exists yet: no `pyproject.toml`, `package.json`, `src/`, or
-tests. The `docs/` architecture package is a plan, not a description of shipped code. Do not start
-broad implementation before the M0 acceptance criteria in `docs/ROADMAP.md` are approved.
+M0 in progress; the studio runs. `src/razbiram_screen_to_learn/` holds extraction, export and the
+loopback API, `apps/studio/` the React UI. Parts of `docs/` are still plan rather than description —
+check the code before believing a doc.
+
+## Running it
+
+**`./start.sh` is the only way to start this app.** Not `uvicorn`, not `vite`, not `npm run dev` —
+and never a razbiram.com dev server, which is a different product with a different UI. The script
+owns the venv, the UI build and the port.
+
+```bash
+./start.sh              # http://127.0.0.1:8765, opens a browser
+./start.sh --rebuild    # REQUIRED after changing apps/studio — the UI is served from dist/
+./start.sh --free-port  # stop whatever holds the port first
+```
 
 ## Precedence and reading order
 

@@ -4,6 +4,11 @@
 # UI are served from one loopback origin, so there is no proxy, no account and no
 # razbiram.com shell around it. Captured content never leaves the machine.
 #
+# THIS SCRIPT IS THE ONLY SUPPORTED WAY TO START THE APP — people and agents alike.
+# Starting uvicorn, vite or `npm run dev` by hand gives a half-wired app; starting the
+# razbiram.com dev server gives a different product that happens to share a logo.
+# After changing apps/studio, re-run with --rebuild: the UI is served from dist/.
+#
 #   ./start.sh              build the UI if needed, serve it, open the browser
 #   ./start.sh --rebuild    rebuild the UI first (after changing apps/studio)
 #   ./start.sh --no-open    don't open a browser
@@ -27,7 +32,7 @@ for arg in "$@"; do
     --rebuild) REBUILD=1 ;;
     --no-open) OPEN=0 ;;
     --free-port) FREE_PORT=1 ;;
-    -h|--help) sed -n '3,13p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h|--help) sed -n '3,18p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) echo "Unknown option: $arg" >&2; exit 1 ;;
   esac
 done

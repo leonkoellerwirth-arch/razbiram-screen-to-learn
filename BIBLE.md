@@ -154,6 +154,21 @@ backend.
   not otherwise exit without first delivering M2A: the round-trip needs the hub-owned
   `razbiram.recall-deck.v1` contract and a razbiram-anki import path, neither of which exists. M0
   stays a local vertical slice; the integration itself is unchanged.
+- **2026-07-27 — The studio always shows the recognised deck; a gate, not a hidden panel, decides
+  what may leave.** The export panel rendered the JSON editor only when an export existed, so a run
+  reading "0 exportable · 3 blocked" showed nothing to look at — the recognised cards existed and
+  were unreachable. The editor now opens on the export, or on a **draft** (`draft.py`) holding every
+  recognised card in target shape with the unevidenced parts empty. Download is gated on
+  `POST /v1/deck/check`, which runs the export path's own rules against the edited JSON. This closes
+  the previous session's "no review step in the studio" gap, in the shape the owner chose for
+  razbiram.com as well: JSON-only authoring, no card builder.
+- **2026-07-27 — A draft never carries an answer the export would not accept.** A card blocked for
+  its evidence tier still holds the extractor's reading of an ambiguous source. Copying that into
+  the draft made the deck structurally complete, so the gate cleared it and Download turned green on
+  an answer nobody evidenced — found in the studio on a real quiz, not by a test. An unqualified
+  `answerEvidenceTier` now drafts as unanswered. _Why it is in the register:_ structure is not
+  evidence, and a pre-filled guess a person confirms is indistinguishable from a fabricated answer
+  (invariant 1, reached through invariant 3).
 
 ## Open product decisions
 

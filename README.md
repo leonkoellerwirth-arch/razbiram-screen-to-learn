@@ -32,6 +32,115 @@ sudo apt install tesseract-ocr tesseract-ocr-bul # Debian/Ubuntu
 Extra language packs are picked up automatically if present; there is no language setting to
 choose, because this tool reads material rather than teaching a language.
 
+## What it does, on a real quiz
+
+Drop this — as a screenshot, or pasted as text. The same extractor runs either way:
+
+```text
+Biology — practice test
+
+1. Which organ produces insulin?
+A) Liver
+B) Pancreas
+C) Kidney
+D) Spleen
+
+2. Select all that apply. Which of these are metals?
+A) Iron
+B) Oxygen
+C) Copper
+D) Helium
+
+3. A photon has zero rest mass.
+A) True
+B) False
+
+Answers:
+1. B
+2. A, C
+3. A
+```
+
+Three questions, three different families, one trailing key. The studio reports
+`3 cards extracted · 3 exportable · 0 blocked`, and the export carries all three shapes —
+abridged below, but copied from an actual run:
+
+```jsonc
+{
+  "schemaId": "studywithme-bg.learncard.v1",
+  "cards": [
+    { "cardId": "q-0001", "type": "mcq",
+      "question": { "und": "Which organ produces insulin?" },
+      "correctAnswer": "Pancreas",                        // read from "1. B", not guessed
+      "options": [ { "text": "Liver", "isCorrect": false },
+                   { "text": "Pancreas", "isCorrect": true } /* … */ ],
+      "scoring": { "mode": "single-best-answer", "points": 1 } },
+
+    { "cardId": "q-0002", "type": "mcq",
+      "selectionMode": "multiple",                        // both answers survive — never collapsed
+      "question": { "und": "Select all that apply. Which of these are metals?" },
+      "options": [ { "optionId": "opt_5d78ff…", "text": "Iron",   "isCorrect": true },
+                   { "optionId": "opt_7a45b4…", "text": "Oxygen", "isCorrect": false },
+                   { "optionId": "opt_3c7313…", "text": "Copper", "isCorrect": true } /* … */ ],
+      "correctOptionIds": [ "opt_5d78ff…", "opt_3c7313…" ],
+      "scoring": { "mode": "all-or-nothing", "points": 1 } },
+
+    { "cardId": "q-0003", "type": "mcq",
+      "sourceFormat": "true-false",                       // own IR family; two-option MCQ only here
+      "question": { "und": "A photon has zero rest mass." },
+      "correctAnswer": "True",
+      "options": [ { "text": "True", "isCorrect": true },
+                   { "text": "False", "isCorrect": false } ] }
+  ]
+}
+```
+
+### The same quiz without its answer key
+
+Delete the `Answers:` block and nothing is exportable. The material never says which option is
+right, and this tool does not decide that for you:
+
+```text
+Nothing is exportable yet — every card was excluded
+  q-0001 — answerEvidenceTier 'source-ambiguous' is not exportable;
+           needs one of ['reviewer-confirmed', 'source-verified']
+  q-0002 — …
+```
+
+The cards are still there to look at. The editor opens on a **draft**: every recognised card in
+target shape, with the answer left explicitly empty instead of guessed.
+
+```jsonc
+{ "cardId": "q-0001", "type": "mcq",
+  "question": { "und": "Which organ produces insulin?" },
+  "correctAnswer": "",                                    // ← you fill this in
+  "options": [ { "text": "Liver",    "isCorrect": false },
+               { "text": "Pancreas", "isCorrect": false }, // nothing pre-selected, on purpose
+               { "text": "Kidney",   "isCorrect": false },
+               { "text": "Spleen",   "isCorrect": false } ] }
+```
+
+Download stays disabled, and `POST /v1/deck/check` — the same rules the export path enforces —
+says what is missing:
+
+```text
+card q-0001: mark exactly one correct option, 0 are marked
+card q-0002: mark at least one correct option (correctOptionIds is empty)
+```
+
+Mark the answers the material shows, and Download turns green. That round trip is the human
+release gate: a pre-filled guess someone confirms is indistinguishable from a fabricated answer,
+so there is never a guess to confirm — including when the extractor did form an opinion at a tier
+too weak to export.
+
+### Known limits
+
+- **A question number that OCR fails to read costs that question its answer key.** Blocks inherit
+  the last number seen, so a key row can bind to the neighbouring question — wrong, and quiet.
+  Pasting the text avoids it. Until it is fixed, read the review list before exporting a deck that
+  came from a screenshot.
+- PDF intake, the browser extension and the artifact store are design only.
+
 ## Decision
 
 **Conditional GO.** The product is technically feasible if it is built as a content-first,
