@@ -1,0 +1,18 @@
+{
+  "schemaId": "studywithme-bg.learncard.v1",
+  "profileVersion": "1.1.0",
+  "capabilities": [
+    "mcq.single",
+    "mcq.true-false",
+    "mcq.multiple-select.v1",
+    "matching",
+    "typed",
+    "flashcard",
+    "image-occlusion"
+  ],
+  "meta": {
+    "profileUrl": "/learncards/profile.v1.json",
+    "updatedAt": "2026-07-26",
+    "note": "What the engine can parse and render. A producer of deck JSON reads this instead of hard-coding a list, so a card family is never exported to a build that cannot present it. mcq.true-false and mcq.multiple-select.v1 landed 2026-07-26; both are declared by an explicit discriminator on the card (sourceFormat / selectionMode) and never inferred from the option count."
+  }
+}

@@ -12,6 +12,7 @@ from pathlib import Path
 import pytest
 from jsonschema import Draft202012Validator
 
+from razbiram_screen_to_learn import pipeline
 from razbiram_screen_to_learn.contracts import dump_document
 from razbiram_screen_to_learn.export import MCQ_MAX_OPTIONS, MCQ_MIN_OPTIONS
 from razbiram_screen_to_learn.pipeline import LIVE_CAPABILITIES, process_markup
@@ -161,3 +162,42 @@ class TestLiveTargetRules:
         ids = [card["cardId"] for card in result.export.deck["cards"]]
         assert ids == [f"q-{index:04d}" for index in range(1, len(ids) + 1)]
         assert all(card["sourceId"].startswith("src_") for card in result.export.deck["cards"])
+
+
+class TestCapabilityProfile:
+    """Capabilities come from the pinned profile, not from a list typed into the code."""
+
+    def test_profile_is_committed_and_declares_the_additive_formats(self) -> None:
+        profile = json.loads(
+            (ROOT / "docs" / "schemas" / "learncard-target.profile.v1.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        assert profile["schemaId"] == "studywithme-bg.learncard.v1"
+        assert {"mcq.true-false", "mcq.multiple-select.v1"} <= set(profile["capabilities"])
+
+    def test_loaded_capabilities_match_the_profile(self) -> None:
+        profile = json.loads(
+            (ROOT / "docs" / "schemas" / "learncard-target.profile.v1.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        assert set(LIVE_CAPABILITIES) == set(profile["capabilities"])
+
+    @pytest.mark.parametrize(
+        "broken", ['{"capabilities": "not-a-list"}', "{}", "not json at all", ""]
+    )
+    def test_a_broken_profile_narrows_rather_than_widens(
+        self, broken: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Failing open would export families the engine cannot render, silently."""
+        bad = tmp_path / "profile.json"
+        bad.write_text(broken, encoding="utf-8")
+        monkeypatch.setattr(pipeline, "PROFILE_PATH", bad)
+        assert pipeline._load_capabilities() == frozenset({"mcq.single"})
+
+    def test_a_missing_profile_narrows_rather_than_widens(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setattr(pipeline, "PROFILE_PATH", tmp_path / "absent.json")
+        assert pipeline._load_capabilities() == frozenset({"mcq.single"})

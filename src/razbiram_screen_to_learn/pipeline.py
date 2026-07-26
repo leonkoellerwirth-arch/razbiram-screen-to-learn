@@ -7,7 +7,9 @@ implements so the CLI and the studio API share exactly one code path.
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
+from pathlib import Path
 
 from razbiram_screen_to_learn.contracts import CaptureIR, Deck, Target
 from razbiram_screen_to_learn.export import TARGET_PROFILE, ExportResult, export_deck
@@ -15,31 +17,36 @@ from razbiram_screen_to_learn.extract import extract_document
 from razbiram_screen_to_learn.identity import capture_id as derive_capture_id
 from razbiram_screen_to_learn.validators import Issue, validate_for_export
 
-#: What the target deck profile can carry.
+#: The card formats the target engine can parse, read from a pinned copy of the profile
+#: razbiram.com publishes at ``/learncards/profile.v1.json``.
 #:
-#: The integration boundary with razbiram.com is the deck JSON and nothing else — the product does
-#: not implement or know about screen-to-learn. So a "capability" here names a *card format the
-#: engine can parse*, not a feature anyone has to build for this tool.
+#: The integration boundary is the deck JSON and nothing else, so a "capability" names a *format
+#: the engine can parse*, not a feature anyone builds for this tool.
 #:
-#: `mcq.single`, `matching`, `typed`, `flashcard` and `image-occlusion` were verified against the
-#: shipped reference deck and the product's own validator at the pinned commit.
-#:
-#: `mcq.true-false` and `mcq.multiple-select.v1` are the two additive formats razbiram.com is
-#: taking on. Their exact shapes are specified in `docs/schemas/learncard-target.v1.schema.json`
-#: and exercised by the committed examples, so the engine has something concrete to parse against.
-#: The identifiers are the ones razbiram.com publishes in its capability profile
-#: (`learncard-type-system-extension-2026-07-26.md`, Phase 3); they are no longer provisional.
-LIVE_CAPABILITIES: frozenset[str] = frozenset(
-    {
-        "mcq.single",
-        "mcq.true-false",
-        "mcq.multiple-select.v1",
-        "matching",
-        "typed",
-        "flashcard",
-        "image-occlusion",
-    }
+#: Deliberately a committed file rather than a live fetch, which is what the cross-repo plan
+#: proposed. Two reasons: this tool is local-first and must export with no network at all, and a
+#: Golden run whose result depends on a remote file is not deterministic. Refreshing the copy is an
+#: explicit, reviewable act (``scripts/refresh-target-profile.sh``), so a capability can never
+#: change under an export without someone seeing the diff.
+PROFILE_PATH = (
+    Path(__file__).resolve().parents[2] / "docs" / "schemas" / "learncard-target.profile.v1.json"
 )
+
+
+def _load_capabilities() -> frozenset[str]:
+    try:
+        profile = json.loads(PROFILE_PATH.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        # A missing or broken profile must not silently widen what we export. Nothing declared
+        # means nothing beyond the single-answer baseline leaves the tool.
+        return frozenset({"mcq.single"})
+    declared = profile.get("capabilities")
+    if not isinstance(declared, list) or not all(isinstance(c, str) for c in declared):
+        return frozenset({"mcq.single"})
+    return frozenset(declared)
+
+
+LIVE_CAPABILITIES: frozenset[str] = _load_capabilities()
 
 DEFAULT_DECK = Deck(
     deckKey="fixture-demo-01",
