@@ -141,6 +141,56 @@ ADR-001 must be revisited before M1 rather than adding a second orchestrator.
 - JSON and issue preview;
 - retention/delete controls.
 
+### `razbiram_screen_to_learn.api`
+
+The loopback FastAPI service that brokers the studio and the extension:
+
+- HTTP endpoints for artifact upload/download by opaque ID and hash;
+- WebSocket channel for state, progress, and event delivery;
+- strict `Host`, `Origin`, and capability-token enforcement;
+- rate limiting for pairing and artifact endpoints;
+- no internet exposure; binds to `127.0.0.1` only.
+
+### `razbiram_screen_to_learn.jobs`
+
+Bounded background job queue for pipeline execution:
+
+- job lifecycle: queued → running → awaiting_user | succeeded | failed | cancelled;
+- idempotent retries under the same job identity;
+- maximum 2 concurrent extraction workers;
+- cooperative cancellation checkpoint between every stage;
+- cost ceiling enforcement for optional vision/model calls.
+
+### `razbiram_screen_to_learn.pairing`
+
+Manages the extension↔studio pairing protocol (ADR 007 public compatibility boundary):
+
+- generates random loopback port and pairing code that encodes port + one-time token prefix;
+- mints and revokes scoped capability tokens;
+- verifies `chrome-extension://` and `moz-extension://` origin against the paired identity;
+- rate-limits pairing attempts and expires codes after a short window;
+- stores no secrets in logs, manifests, or frontend persistence.
+
+### `razbiram_screen_to_learn.security`
+
+Cross-cutting security enforcement:
+
+- secret scanning and environment-based credential loading;
+- archive path traversal and symlink rejection on `.razcapture` import;
+- sanitized-markup enforcement on all captured HTML;
+- permission audit and per-release budget check;
+- no LLM provider key stored in the extension or logged.
+
+### `razbiram_screen_to_learn.storage`
+
+Local artifact and metadata persistence:
+
+- content-addressed artifact store: write-once files keyed by SHA-256;
+- SQLite metadata and state-transition log;
+- hash verification on every read and after import;
+- retention policy enforcement and session-evidence deletion;
+- no absolute local paths in portable manifests or exported artifacts.
+
 ## Data plane and control plane
 
 Large binary artifacts never travel as repeated base64 WebSocket payloads.
@@ -202,12 +252,24 @@ The standalone deployment is a local process:
 
 ```text
 razbiram-screen-to-learn studio
-  ├── starts loopback API on an ephemeral port
+  ├── starts loopback API on a random OS-assigned port
+  ├── encodes port + token prefix in a short-lived pairing code (displayed in the UI)
   ├── mints an in-memory capability token
   ├── opens the local studio
   ├── exposes screenshot/PDF/text/bundle intake
   └── launches headed Chromium only as a fallback
 ```
+
+Port discovery for the paired extension: the **pairing code encodes the port number and a
+one-time token prefix**. The user enters or confirms the code in the extension popup; the
+extension derives the loopback endpoint `http://127.0.0.1:{port}` and presents the full
+capability token in the `Authorization` header on every request. Port secrecy is not a claimed
+security property; the capability token is the authentication mechanism. Strict `Host` and
+`Origin` header checks enforce that only the paired extension origin at that loopback address can
+transfer artifacts. The port is session-scoped: a studio restart picks a new port and requires a
+new pairing code. The extension's offline queue preserves captures as `.razcapture` bundles
+during any gap so that a restart does not lose data. The pairing protocol is the public
+compatibility boundary (ADR 007).
 
 The separately distributed Chrome/Firefox extension works in Capture Lite without the studio by
 downloading `.razcapture`. Paired mode connects to the loopback service after an explicit,

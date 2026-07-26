@@ -10,6 +10,9 @@
     "extension",
     "page",
     "captureMode",
+    "captureState",
+    "questionFingerprint",
+    "stateFingerprint",
     "artifacts",
     "privacy"
   ],
@@ -19,7 +22,8 @@
     },
     "captureId": {
       "type": "string",
-      "pattern": "^cap_[A-Za-z0-9_-]+$"
+      "pattern": "^cap_[A-Za-z0-9_-]+$",
+      "description": "SHA-256-derived capture identity. See IDENTITY_ALGORITHMS.md."
     },
     "createdAt": {
       "type": "string",
@@ -112,9 +116,19 @@
         "region"
       ]
     },
+    "captureState": {
+      "enum": ["question", "reveal", "unknown"],
+      "description": "Which role this capture plays in the question/reveal pair. The Join stage uses this to select the question-state options and the reveal-state answer key. 'unknown' is valid when the extension cannot determine the role (e.g. single manual capture with no visible feedback); the Join stage routes 'unknown' captures to NeedsReview."
+    },
     "questionFingerprint": {
       "type": "string",
-      "pattern": "^[a-f0-9]{64}$"
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "SHA-256 join key, identical across question and reveal states for the same question. Computed from NFC question text, sorted feedback-stripped option clean texts, card family, and origin scope. See IDENTITY_ALGORITHMS.md."
+    },
+    "stateFingerprint": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "SHA-256 dedup key for this specific DOM state. Distinct between question and reveal states; identical across React rerenders of the same semantic state. See IDENTITY_ALGORITHMS.md."
     },
     "artifacts": {
       "type": "array",
@@ -122,7 +136,8 @@
       "maxItems": 100,
       "items": {
         "$ref": "#/$defs/artifact"
-      }
+      },
+      "description": "Every capture must include a semantic-snapshot artifact (semantic-snapshot.v1, application/json). The semantic-snapshot embeds captureState, questionFingerprint, and stateFingerprint for pipeline stage consumption. When captureMode is 'region', the semantic-snapshot artifact contains a capturedRegion object with the CSS-pixel rectangle and devicePixelRatio."
     },
     "privacy": {
       "type": "object",

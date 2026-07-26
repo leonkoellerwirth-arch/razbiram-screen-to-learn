@@ -68,14 +68,23 @@ Every field is a value plus evidence references, not a bare string.
 
 ### 5. Join evidence
 
-Groups states by `questionFingerprint` and reconciles:
+Groups captures by `questionFingerprint` (read from `extension-capture.v1` without opening the
+artifact) and reconciles:
 
-- question/options from the clean unanswered state;
-- correct answers from the authoritative reveal state;
-- explanations from visible solution content;
-- source ordering and stable option IDs.
+- `captureState: "question"` — provides clean option text and source ordering;
+- `captureState: "reveal"` — provides correct-answer evidence and explanations;
+- `captureState: "unknown"` — routed to NeedsReview; cannot contribute answer evidence.
 
-Contradictions create blocking issues.
+Within each `questionFingerprint` group, options are matched across states by `cleanText`
+(feedback-stripped, NFC-normalized), not by DOM position. This is the mechanism that satisfies
+G13 (options randomized between states): the join key and the option-match key are both
+order-independent. Option identity (`optionId`) is derived from `sourceId` and `cleanText`;
+source ordering for export uses the question-state DOM order.
+
+Contradictions (same option marked both correct and incorrect across states, or multiple
+authoritative reveal states with different keys) create blocking issues. See
+[IDENTITY_ALGORITHMS.md](IDENTITY_ALGORITHMS.md) for the exact derivation of `questionFingerprint`
+and `optionId`.
 
 ### 6. Normalize
 

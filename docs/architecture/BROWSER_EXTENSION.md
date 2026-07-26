@@ -160,17 +160,23 @@ The studio verifies the manifest, filenames, size limits, media types, and hashe
 
 The preferred interactive path is a user-paired loopback connection:
 
-1. the studio shows a short-lived pairing code;
-2. the user enters or confirms it in the extension;
-3. the studio mints a scoped, revocable capability token;
-4. the extension sends versioned manifests and chunked artifacts to `127.0.0.1`;
-5. the studio permits only the paired `chrome-extension://…` or `moz-extension://…` origin.
+1. the studio binds to a random OS-assigned loopback port and displays a short-lived pairing code
+   that encodes the port number and a one-time token prefix;
+2. the user enters or confirms the code in the extension popup;
+3. the extension derives the endpoint `http://127.0.0.1:{port}` from the code and sends a pairing
+   request with the full capability token in the `Authorization` header;
+4. the studio mints a scoped, revocable capability token, validates the extension origin
+   (`chrome-extension://…` or `moz-extension://…`), and confirms pairing;
+5. the extension sends versioned manifests and chunked artifacts to that endpoint; every request
+   carries the token.
 
-The service binds to loopback only, uses a random port, validates `Host` and `Origin`, rate-limits
-pairing, verifies the installed extension identity as far as each browser transport exposes it,
-and never places the token in a URL or log. Browser differences in `Origin` headers are covered
-by explicit adapter tests; the capability token is never replaced by CORS alone. Large files use
-artifact endpoints and hashes, not persistent base64 messages.
+Port secrecy is not a security claim. The capability token is the authentication mechanism;
+strict `Host` and `Origin` checks prevent cross-origin reuse. The pairing code expires after a
+short window and is rate-limited. The token is never placed in a URL, log, or extension storage.
+The port is session-scoped; a studio restart requires a new pairing code. The extension's offline
+queue retains captures as `.razcapture` bundles during any gap. Browser differences in `Origin`
+headers are covered by explicit adapter tests. Large files use artifact endpoints with hash
+verification, not persistent base64 messages.
 
 ### Native Messaging — later packaging option
 

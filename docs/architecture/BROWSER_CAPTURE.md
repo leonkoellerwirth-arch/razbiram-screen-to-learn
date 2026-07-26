@@ -135,22 +135,30 @@ never become idle.
 
 ## Fingerprints
 
-`questionFingerprint` hashes:
+`questionFingerprint` is the cross-state join key. It hashes:
 
-- normalized question text;
-- normalized option texts in source order;
+- NFC-normalized question stem text;
+- NFC-normalized, **feedback-stripped**, **lexicographically sorted** option clean texts;
 - card-family classification;
-- sanitized origin/path scope.
+- sanitized origin and path scope.
 
-`stateFingerprint` additionally hashes:
+Sorting before hashing makes the fingerprint order-independent (G13: options randomized between
+question and reveal states still join correctly). Stripping feedback annotations before sorting
+ensures reveal-state option texts (e.g. "✓ any set of related data") match their question-state
+counterparts ("any set of related data"). The exact normalization, stripping rules, and
+serialization are specified in [IDENTITY_ALGORITHMS.md](IDENTITY_ALGORITHMS.md).
 
-- checked states;
-- correctness/feedback labels;
-- revealed explanation text;
-- visible answer-state classes reduced to semantic signals.
+`stateFingerprint` is the per-state dedup key. It extends `questionFingerprint` with:
 
-Fingerprinting prevents duplicate captures from React rerenders while allowing a question and
-its reveal state to be paired.
+- checked states and raw visible option texts (including any feedback labels);
+- revealed explanation text.
+
+The `stateFingerprint` is identical across React rerenders of the same semantic state (G14) and
+distinct between the question and reveal states of the same question. It prevents duplicate
+captures without blocking valid state transitions.
+
+Both fingerprints are embedded in the `semantic-snapshot.v1` artifact and mirrored in the
+`extension-capture.v1` manifest for fast grouping without opening the artifact.
 
 ## Answer-state pairing
 

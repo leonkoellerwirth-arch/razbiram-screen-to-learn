@@ -1,0 +1,168 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://razbiram.com/schemas/semantic-snapshot.v1.schema.json",
+  "title": "razbiram screen-to-learn semantic snapshot v1",
+  "description": "Sanitized DOM/ARIA snapshot of one stable page state. Artifact role: semantic-snapshot. Read by Detect, Extract, and Join stages.",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "captureId",
+    "captureState",
+    "questionFingerprint",
+    "stateFingerprint",
+    "nodes"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "semantic-snapshot.v1"
+    },
+    "captureId": {
+      "type": "string",
+      "pattern": "^cap_[A-Za-z0-9_-]+$",
+      "description": "Back-reference to the extension-capture.v1 manifest that owns this artifact."
+    },
+    "captureState": {
+      "enum": ["question", "reveal", "unknown"],
+      "description": "Which role this state plays in the question/reveal pair. 'unknown' requires human review before joining."
+    },
+    "questionFingerprint": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "SHA-256 join key. Computed from question text, sorted feedback-stripped option texts, card family, and origin scope. Identical across question and reveal states for the same question. See IDENTITY_ALGORITHMS.md."
+    },
+    "stateFingerprint": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "SHA-256 dedup key for this specific DOM state. Includes checked states and raw option texts with feedback labels. Distinct between question and reveal states; identical across React rerenders of the same state."
+    },
+    "container": {
+      "type": "object",
+      "description": "The top-level question container node.",
+      "required": ["role", "boundingBox"],
+      "properties": {
+        "role": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "accessibleName": {
+          "type": "string",
+          "maxLength": 1024
+        },
+        "boundingBox": {
+          "$ref": "#/$defs/normalizedRect"
+        }
+      },
+      "additionalProperties": false
+    },
+    "capturedRegion": {
+      "type": "object",
+      "description": "Present when captureMode is 'region'. Stores the CSS-pixel bounding rectangle drawn by the user and the device-pixel ratio at capture time. Cross-referenced from the extension-capture.v1 manifest when captureMode is 'region'.",
+      "required": ["cssRect", "devicePixelRatio"],
+      "properties": {
+        "cssRect": {
+          "type": "object",
+          "required": ["x", "y", "width", "height"],
+          "properties": {
+            "x": { "type": "number", "minimum": 0 },
+            "y": { "type": "number", "minimum": 0 },
+            "width": { "type": "number", "exclusiveMinimum": 0 },
+            "height": { "type": "number", "exclusiveMinimum": 0 }
+          },
+          "additionalProperties": false
+        },
+        "devicePixelRatio": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 10
+        }
+      },
+      "additionalProperties": false
+    },
+    "nodes": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 500,
+      "items": {
+        "$ref": "#/$defs/semanticNode"
+      },
+      "description": "Visible nodes under the question container, in DOM order. No scripts, styles, event handlers, hidden form values, or auth tokens."
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "normalizedRect": {
+      "type": "object",
+      "description": "Bounding box in normalized viewport coordinates (0.0–1.0).",
+      "required": ["x", "y", "width", "height"],
+      "properties": {
+        "x": { "type": "number", "minimum": 0, "maximum": 1 },
+        "y": { "type": "number", "minimum": 0, "maximum": 1 },
+        "width": { "type": "number", "minimum": 0, "maximum": 1 },
+        "height": { "type": "number", "minimum": 0, "maximum": 1 }
+      },
+      "additionalProperties": false
+    },
+    "semanticNode": {
+      "type": "object",
+      "required": ["nodeId", "nodeType", "role", "visibleText", "cleanText", "boundingBox"],
+      "properties": {
+        "nodeId": {
+          "type": "string",
+          "pattern": "^n-[0-9]+$",
+          "description": "Local stable node reference within this snapshot. Assigned in DOM order. Does not persist across captures."
+        },
+        "nodeType": {
+          "enum": ["question-stem", "option", "feedback", "explanation", "label", "other"],
+          "description": "Semantic role within the question structure."
+        },
+        "role": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "description": "ARIA role or inferred semantic role."
+        },
+        "accessibleName": {
+          "type": "string",
+          "maxLength": 1024,
+          "description": "Computed accessible name per ARIA in HTML."
+        },
+        "visibleText": {
+          "type": "string",
+          "maxLength": 4096,
+          "description": "Raw visible text content as rendered, including any feedback annotations."
+        },
+        "cleanText": {
+          "type": "string",
+          "maxLength": 4096,
+          "description": "NFC-normalized, whitespace-collapsed text with feedback annotations stripped. Used to compute questionFingerprint and optionId. See IDENTITY_ALGORITHMS.md for stripping rules."
+        },
+        "boundingBox": {
+          "$ref": "#/$defs/normalizedRect"
+        },
+        "checked": {
+          "type": "boolean",
+          "description": "True if this radio/checkbox node is in the checked state."
+        },
+        "expanded": {
+          "type": "boolean",
+          "description": "True if this node is in the expanded state (e.g. disclosure widget)."
+        },
+        "disabled": {
+          "type": "boolean",
+          "description": "True if this node is disabled or aria-disabled."
+        },
+        "hasShadowRoot": {
+          "type": "boolean",
+          "description": "True if this element hosts an open shadow root that was descended into."
+        },
+        "containerRef": {
+          "type": "string",
+          "pattern": "^n-[0-9]+$",
+          "description": "nodeId of the nearest ancestor node recorded in this snapshot, if any."
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

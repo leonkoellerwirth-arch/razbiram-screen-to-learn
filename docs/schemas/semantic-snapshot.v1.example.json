@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "semantic-snapshot.v1",
+  "captureId": "cap_01JEXAMPLE",
+  "captureState": "question",
+  "questionFingerprint": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "stateFingerprint": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "container": {
+    "role": "group",
+    "accessibleName": "Biophysics question 1",
+    "boundingBox": { "x": 0.05, "y": 0.10, "width": 0.90, "height": 0.55 }
+  },
+  "nodes": [
+    {
+      "nodeId": "n-0",
+      "nodeType": "question-stem",
+      "role": "heading",
+      "accessibleName": "Information is:",
+      "visibleText": "Information is:",
+      "cleanText": "Information is:",
+      "boundingBox": { "x": 0.05, "y": 0.10, "width": 0.90, "height": 0.08 }
+    },
+    {
+      "nodeId": "n-1",
+      "nodeType": "option",
+      "role": "radio",
+      "accessibleName": "the transmitted message",
+      "visibleText": "the transmitted message",
+      "cleanText": "the transmitted message",
+      "boundingBox": { "x": 0.08, "y": 0.22, "width": 0.80, "height": 0.06 },
+      "checked": false,
+      "disabled": false,
+      "hasShadowRoot": false,
+      "containerRef": "n-0"
+    },
+    {
+      "nodeId": "n-2",
+      "nodeType": "option",
+      "role": "radio",
+      "accessibleName": "any set of related data",
+      "visibleText": "any set of related data",
+      "cleanText": "any set of related data",
+      "boundingBox": { "x": 0.08, "y": 0.30, "width": 0.80, "height": 0.06 },
+      "checked": false,
+      "disabled": false,
+      "hasShadowRoot": false,
+      "containerRef": "n-0"
+    },
+    {
+      "nodeId": "n-3",
+      "nodeType": "option",
+      "role": "radio",
+      "accessibleName": "a set of digits",
+      "visibleText": "a set of digits",
+      "cleanText": "a set of digits",
+      "boundingBox": { "x": 0.08, "y": 0.38, "width": 0.80, "height": 0.06 },
+      "checked": false,
+      "disabled": false,
+      "hasShadowRoot": false,
+      "containerRef": "n-0"
+    }
+  ]
+}
