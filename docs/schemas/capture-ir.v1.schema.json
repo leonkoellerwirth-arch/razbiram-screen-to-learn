@@ -233,7 +233,7 @@
           "uniqueItems": true
         }
       },
-      "additionalProperties": true
+      "unevaluatedProperties": false
     },
     "review": {
       "type": "object",
@@ -596,7 +596,7 @@
           }
         }
       ],
-      "additionalProperties": true
+      "unevaluatedProperties": false
     },
     "matchingItem": {
       "type": "object",
@@ -776,7 +776,7 @@
           "minLength": 1
         }
       },
-      "additionalProperties": true
+      "unevaluatedProperties": false
     }
   }
 }

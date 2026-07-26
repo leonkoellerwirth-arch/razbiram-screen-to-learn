@@ -111,10 +111,17 @@ transfer. It declares:
 - semantic-snapshot capability;
 - artifact IDs, roles, media types, byte sizes, and SHA-256 hashes;
 - privacy flags such as stripped query and excluded form controls;
-- question fingerprint when one can be computed deterministically.
+- `captureState` (`question`, `reveal`, or `unknown`) — which role the capture plays in the join;
+- `questionFingerprint` (the join key) and `stateFingerprint` (the per-state dedup key).
+
+All three identity fields are required. The Join stage therefore groups and selects from the
+manifest alone and never parses an artifact to find out what it is holding. A capture that cannot
+be classified is emitted as `unknown` and routed to review rather than dropped.
 
 Portable contracts contain no absolute local path, raw query string, fragment, cookie, provider
-key, or executable captured markup. See the schemas and examples under `docs/schemas/`.
+key, or executable captured markup. The semantic snapshot referenced by a capture has its own
+contract in `semantic-snapshot.v1`; region geometry lives there under `capturedRegion`. See the
+schemas and examples under `docs/schemas/`.
 
 ## Reviewed-deck projection
 
@@ -209,7 +216,7 @@ contract and M0 must round-trip a fixture for each family.
 ## Current compatibility export
 
 Reference deck:
-`app/studywithme-bg/learncards/Biophysics/deck-01.json`.
+`studywithme_db/app/studywithme-bg/learncards/Biophysics/deck-01.json`.
 
 Required deck hull:
 
@@ -236,8 +243,27 @@ Required deck hull:
 }
 ```
 
+`meta.source` in the hull above is the proposed output shape for new screen-to-learn exports.
+Shipped decks may carry import-provenance instead, e.g.
+`{"file": "deck.json", "book": "...", "originalDeckName": "..."}`.
+The deck validator must accept both shapes; do not reject a deck solely because `meta.source`
+lacks `kind`/`rightsBasis`.
+
 Although `estimatedMinutes` and `cardCount` are currently derivable in the loader, the exporter
 writes correct explicit values.
+
+### Verified against live files
+
+The following were confirmed against the live reference deck and razbiram.com runtime and must
+not be re-litigated without new evidence:
+
+- `schemaId: "studywithme-bg.learncard.v1"` is the active identifier in shipped decks.
+- The single-choice output shape below is correct; `correctAnswer` is a singular string.
+- `scoring.mode: "single-best-answer"` is what shipped decks use.
+- `meta.cardCount: 33` matches the 33 real cards in the reference deck.
+- razbiram.com's MCQ runtime is single-answer at every layer (`role="radiogroup"`,
+  `correctAnswer?: string`, validator rejects more than one correct option); the
+  multiple-select capability gate is therefore justified.
 
 ### Single-choice output
 
@@ -304,16 +330,35 @@ Capture IR but `exportable: false` for this target.
 
 ## Config output
 
-Use `accessTier`, not the legacy/drifted `access` key:
+`access` is the live top-level key in shipped config files (`biophysics/config.json` and
+peers). `accessTier` was a proposed migration target; it does not appear in any current config
+and has not been adopted by the razbiram.com config loader. Verify against the loader before
+writing it. Until that migration is confirmed, the exporter must write `access`; writing both
+keys is acceptable as a transition aid.
+
+The live config shape also carries `typedAnswerEvaluation`. The exporter must include this key
+when the target deck covers a subject that requires evaluation hints:
 
 ```json
 {
   "topicKey": "biophysics-practice-first-year",
-  "accessTier": "premium",
+  "access": "premium",
   "year": "1",
   "semester": "2",
   "title": { "en": "Biophysics Practice" },
   "description": { "en": "Reviewed practice decks." },
+  "typedAnswerEvaluation": {
+    "subject": "biophysics",
+    "domain": "physics in medicine",
+    "allowCrossLanguageEquivalence": false,
+    "requireTerminologyPrecision": true,
+    "requireUnitPrecision": true,
+    "requireFormulaPrecision": true,
+    "evaluatorNotes": [
+      "Require correct physical laws, variable meaning, units, and symbolic relations.",
+      "Reject sign errors, reversed dependencies, and quantitatively wrong statements."
+    ]
+  },
   "decks": {
     "biophysics-cybernatics-01": {
       "description": { "en": "Cybernetics practice." },
@@ -328,14 +373,36 @@ Use `accessTier`, not the legacy/drifted `access` key:
 
 ## Stable IDs
 
+`docs/architecture/IDENTITY_ALGORITHMS.md` is authoritative for the exact normalization,
+serialization, and hashing of every derived identifier. The summary below must not diverge from it.
+
 - `sessionId`: random ULID; operational only.
 - `captureId`: SHA-256 of normalized capture manifest plus artifact hashes.
-- `sourceId`: SHA-256 of source scope + question fingerprint.
-- `optionId`: stable hash of source ID + source option identity, not displayed text alone.
-- `cardId`: deterministic per approved deck ordering or stable source ID mapping.
+- `sourceId`: `src_` + first 32 hex of SHA-256 over source scope and `questionFingerprint`.
+- `optionId`: `opt_` + first 32 hex of SHA-256 over source ID and the option's normalized
+  `cleanText` — never displayed text alone.
+- `cardId` **in Capture IR**: `q-` + first 16 hex of SHA-256 over the source ID. Source-stable and
+  independent of reviewer ordering.
 - `deckKey`: reviewer-approved URL-safe slug; stable across reruns.
 
 Changing formatting must not remint semantic IDs.
+
+### Card identity across the IR/export boundary
+
+The IR identifier and the exported deck identifier are deliberately different, because they answer
+different questions.
+
+| Layer | Field | Form | Why |
+|---|---|---|---|
+| Capture IR | `cardId` | `q-<16 hex>` | Canonical identity; survives reordering, re-capture, and review |
+| Export deck | `cardId` | `q-0001` … | Sequential label; matches every shipped deck |
+| Export deck | `sourceId` | `src_<32 hex>` | Carries the stable identity into the product |
+
+Verified against the live reference deck: its cards run `q-0001` … `q-0033` **and** every card
+already carries a `sourceId`. razbiram.com's validator only requires a non-empty `cardId`
+(`deckSchema.ts:139`), so it does not constrain the form — but shipped decks are sequential, and
+the exporter matches them. Stable cross-export identity therefore travels in `sourceId`, which the
+product already stores, rather than in a re-minted `cardId`.
 
 ## Blocking validation
 
@@ -355,6 +422,23 @@ Changing formatting must not remint semantic IDs.
 - no unresolved review blockers;
 - rights decision is present for publication;
 - final size/card limits respected.
+
+### Cross-field validators (code responsibility, not schema)
+
+JSON Schema cannot enforce the following invariants. They are explicit code-validator
+responsibilities:
+
+- `correctOptionIds` equals the set of option IDs where `isCorrect` is `true`.
+- `meta.cardCount === cards.length`.
+- Evidence referential integrity: every `evidenceId` referenced in any card field exists in
+  the top-level `evidence` ledger.
+- Single-choice: `correctAnswer` in the export exactly equals the correct option's `text`.
+- True/false: exactly two options (one `True`, one `False`).
+- Matching: every `leftItemId` and `rightItemId` in `correctPairs` exists in `leftItems`/
+  `rightItems`; item IDs are unique within each side.
+- Typed: `acceptableAnswers` has at least one non-empty entry.
+- Image-occlusion: base image artifact exists and its hash matches the declared hash; each
+  occlusion region has non-empty `altText`.
 
 ## Warnings
 

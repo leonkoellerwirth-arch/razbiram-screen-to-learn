@@ -38,6 +38,44 @@
       "synthetic"
     ]
   },
+  "evidence": [
+    {
+      "evidenceId": "ev_question_dom",
+      "kind": "dom",
+      "captureId": "cap_01SYNTHETIC",
+      "sourceRole": "question",
+      "authority": "content",
+      "extractor": "dom-v1",
+      "runId": "run_01SYNTHETIC"
+    },
+    {
+      "evidenceId": "ev_key_a",
+      "kind": "dom",
+      "captureId": "cap_01SYNTHETIC",
+      "sourceRole": "answer-key",
+      "authority": "solution",
+      "extractor": "dom-v1",
+      "runId": "run_01SYNTHETIC"
+    },
+    {
+      "evidenceId": "ev_key_b",
+      "kind": "dom",
+      "captureId": "cap_01SYNTHETIC",
+      "sourceRole": "answer-key",
+      "authority": "solution",
+      "extractor": "dom-v1",
+      "runId": "run_01SYNTHETIC"
+    },
+    {
+      "evidenceId": "ev_key_c",
+      "kind": "dom",
+      "captureId": "cap_01SYNTHETIC",
+      "sourceRole": "answer-key",
+      "authority": "solution",
+      "extractor": "dom-v1",
+      "runId": "run_01SYNTHETIC"
+    }
+  ],
   "cards": [
     {
       "draftId": "draft_multi_001",
