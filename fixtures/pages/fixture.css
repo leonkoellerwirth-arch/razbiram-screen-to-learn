@@ -1,0 +1,279 @@
+/* fixture.css — styles for razbiram screen-to-learn synthetic fixture page */
+/* WCAG 2.2 AA: 44px touch targets, 4.5:1 contrast, visible focus, light+dark */
+
+/* ── Design tokens ── */
+:root {
+  --color-bg: #ffffff;
+  --color-surface: #f8f9fa;
+  --color-border: #ced4da;
+  --color-text: #212529;
+  --color-muted: #6c757d;
+  --color-primary: #0d6efd;
+  --color-primary-dark: #0a58ca;
+  --color-correct: #146c43;
+  --color-correct-bg: #d1e7dd;
+  --color-incorrect: #842029;
+  --color-incorrect-bg: #f8d7da;
+  --color-focus-ring: #0d6efd;
+  --color-mask: #4a4e69;
+  --color-mask-text: #ffffff;
+  --radius: 6px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --touch-target: 44px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #1a1d20;
+    --color-surface: #25282c;
+    --color-border: #495057;
+    --color-text: #e9ecef;
+    --color-muted: #adb5bd;
+    --color-primary: #6ea8fe;
+    --color-primary-dark: #8bb9fe;
+    --color-correct: #75b798;
+    --color-correct-bg: #0d2e1f;
+    --color-incorrect: #ea868f;
+    --color-incorrect-bg: #2c0b0e;
+    --color-focus-ring: #6ea8fe;
+    --color-mask: #6c757d;
+    --color-mask-text: #f8f9fa;
+  }
+}
+
+/* ── Reset ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 1rem;
+  line-height: 1.6;
+  background: var(--color-bg);
+  color: var(--color-text);
+  padding: var(--spacing-lg);
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* ── Typography ── */
+h1 { font-size: 1.5rem; margin-bottom: var(--spacing-lg); }
+h2 { font-size: 1.125rem; margin-bottom: var(--spacing-sm); color: var(--color-muted); }
+
+/* ── Question container ── */
+.question-container {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+  scroll-margin-top: var(--spacing-md);
+}
+
+.question-container:focus {
+  outline: 3px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.question-stem {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: var(--spacing-md);
+}
+
+/* ── Options ── */
+.options-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+}
+
+.option-item {
+  display: flex;
+  align-items: center;
+  min-height: var(--touch-target);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 0 var(--spacing-md);
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.option-item:hover { border-color: var(--color-primary); }
+
+.option-item label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  width: 100%;
+  min-height: var(--touch-target);
+  cursor: pointer;
+  padding: var(--spacing-sm) 0;
+}
+
+.option-item input[type="radio"],
+.option-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+}
+
+/* Focus ring on inputs */
+.option-item input:focus-visible {
+  outline: 3px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* ── Feedback states ── */
+.option-item[data-feedback="correct"] {
+  border-color: var(--color-correct);
+  background: var(--color-correct-bg);
+  color: var(--color-correct);
+}
+
+.option-item[data-feedback="incorrect"] {
+  border-color: var(--color-border);
+  opacity: 0.7;
+}
+
+/* ── Controls toolbar ── */
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--color-border);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--touch-target);
+  min-width: var(--touch-target);
+  padding: 0 var(--spacing-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.btn:hover { border-color: var(--color-primary); color: var(--color-primary); }
+.btn:focus-visible { outline: 3px solid var(--color-focus-ring); outline-offset: 2px; }
+
+.btn-primary {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
+  color: #fff;
+}
+
+/* ── State badge ── */
+.state-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: var(--color-border);
+  color: var(--color-muted);
+  margin-left: var(--spacing-sm);
+  vertical-align: middle;
+}
+
+[data-state="reveal"] .state-badge {
+  background: var(--color-correct-bg);
+  color: var(--color-correct);
+}
+
+/* ── Flashcard ── */
+.flashcard-face {
+  min-height: 80px;
+  padding: var(--spacing-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  margin-bottom: var(--spacing-md);
+  font-size: 1rem;
+}
+
+.flashcard-back {
+  background: var(--color-correct-bg);
+  border-color: var(--color-correct);
+  color: var(--color-correct);
+  font-weight: 600;
+}
+
+/* ── Image occlusion ── */
+.occlusion-wrap {
+  position: relative;
+  display: inline-block;
+  margin-bottom: var(--spacing-md);
+}
+
+.occlusion-wrap svg {
+  display: block;
+  max-width: 100%;
+}
+
+.occlusion-region {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--touch-target);
+  min-height: var(--touch-target);
+  background: var(--color-mask);
+  color: var(--color-mask-text);
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: background 0.2s;
+}
+
+.occlusion-region:hover { border-color: var(--color-primary); }
+
+.occlusion-region:focus-visible {
+  outline: 3px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.occlusion-region[data-revealed="true"] {
+  background: var(--color-correct-bg);
+  color: var(--color-correct);
+  border-color: var(--color-correct);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* ── Global reset button ── */
+.global-controls {
+  margin-bottom: var(--spacing-lg);
+  padding: var(--spacing-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+}
+
+.global-controls p {
+  font-size: 0.875rem;
+  color: var(--color-muted);
+  margin-bottom: var(--spacing-sm);
+}

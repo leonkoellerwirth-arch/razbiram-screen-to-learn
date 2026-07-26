@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>razbiram screen-to-learn — synthetic fixture</title>
+  <link rel="stylesheet" href="fixture.css">
+</head>
+<body>
+
+<h1>Synthetic learning fixture
+  <small style="font-weight:400;font-size:0.75em;color:var(--color-muted)">razbiram/screen-to-learn test corpus</small>
+</h1>
+
+<!-- ── Global controls ── -->
+<div class="global-controls" aria-label="Global fixture controls">
+  <p>Test controls — drive via JS API or buttons below. All content is original and self-authored.</p>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;">
+    <button class="btn" onclick="window.reset()">Reset all</button>
+    <button class="btn" onclick="window.navigate('q-single-choice')">Go to Q1</button>
+    <button class="btn" onclick="window.navigate('q-multiple-select')">Go to Q2</button>
+    <button class="btn" onclick="window.navigate('q-true-false')">Go to Q3</button>
+    <button class="btn" onclick="window.navigate('q-flashcard')">Go to Q4</button>
+    <button class="btn" onclick="window.navigate('q-image-occlusion')">Go to Q5</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════
+  Q1 — single-choice
+  Exercises: G01 (single-choice reveal), G13 (option randomization),
+             feedback-stripping (✓ prefix on correct option in reveal state)
+════════════════════════════════════════════════════════════════════ -->
+<section
+  id="q-single-choice"
+  class="question-container"
+  tabindex="-1"
+  data-question-id="q-single-choice"
+  data-family="single-choice"
+  data-state="question"
+  aria-labelledby="q1-heading"
+>
+  <h2 id="q1-heading">Q1 — Single choice <span class="state-badge">question</span></h2>
+
+  <div
+    role="radiogroup"
+    aria-labelledby="q1-stem"
+    id="q1-group"
+  >
+    <p id="q1-stem" class="question-stem">
+      Through which medium does light travel fastest?
+    </p>
+
+    <ul class="options-list" aria-label="Answer options">
+
+      <li class="option-item" data-option-id="q1-opt-water" data-correct="false">
+        <label>
+          <input type="radio" name="q1" value="water"
+            aria-describedby="q1-stem"
+            data-option-ref="q1-opt-water">
+          <span class="option-label" data-clean-text="Liquid water">Liquid water</span>
+        </label>
+      </li>
+
+      <li class="option-item" data-option-id="q1-opt-glass" data-correct="false">
+        <label>
+          <input type="radio" name="q1" value="glass"
+            aria-describedby="q1-stem"
+            data-option-ref="q1-opt-glass">
+          <span class="option-label" data-clean-text="Borosilicate glass">Borosilicate glass</span>
+        </label>
+      </li>
+
+      <li class="option-item" data-option-id="q1-opt-vacuum" data-correct="true">
+        <label>
+          <input type="radio" name="q1" value="vacuum"
+            aria-describedby="q1-stem"
+            data-option-ref="q1-opt-vacuum">
+          <!-- In reveal state JS prepends ✓ here; cleanText stays "Vacuum" for fingerprinting -->
+          <span class="option-label" data-clean-text="Vacuum">Vacuum</span>
+        </label>
+      </li>
+
+      <li class="option-item" data-option-id="q1-opt-diamond" data-correct="false">
+        <label>
+          <input type="radio" name="q1" value="diamond"
+            aria-describedby="q1-stem"
+            data-option-ref="q1-opt-diamond">
+          <span class="option-label" data-clean-text="Diamond">Diamond</span>
+        </label>
+      </li>
+
+    </ul>
+  </div><!-- /radiogroup -->
+
+  <div class="controls">
+    <button class="btn btn-primary" data-action="reveal" data-target="q-single-choice">
+      Reveal answer
+    </button>
+    <!-- G13: reshuffle options before or during reveal to test order-independent join -->
+    <button class="btn" data-action="reshuffle" data-target="q-single-choice"
+      aria-label="Shuffle option order (exercises G13)">
+      Shuffle options (G13)
+    </button>
+    <button class="btn" data-action="reset" aria-label="Reset this question">Reset</button>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════════════════════════════
+  Q2 — multiple-select
+  Exercises: G03/G04 (multiple-select reveal), G14 (repeated rerenders)
+════════════════════════════════════════════════════════════════════ -->
+<section
+  id="q-multiple-select"
+  class="question-container"
+  tabindex="-1"
+  data-question-id="q-multiple-select"
+  data-family="multiple-select"
+  data-state="question"
+  aria-labelledby="q2-heading"
+>
+  <h2 id="q2-heading">Q2 — Multiple select <span class="state-badge">question</span></h2>
+
+  <div
+    role="group"
+    aria-labelledby="q2-stem"
+    id="q2-group"
+  >
+    <p id="q2-stem" class="question-stem">
+      Which of the following are properties shared by all living organisms? Select all that apply.
+    </p>
+
+    <ul class="options-list" aria-label="Answer options">
+
+      <li class="option-item" data-option-id="q2-opt-cellular" data-correct="true">
+        <label>
+          <input type="checkbox" name="q2" value="cellular"
+            aria-describedby="q2-stem"
+            data-option-ref="q2-opt-cellular">
+          <span class="option-label" data-clean-text="Cellular organization">Cellular organization</span>
+        </label>
+      </li>
+
+      <li class="option-item" data-option-id="q2-opt-photosynthesis" data-correct="false">
+        <label>
+          <input type="checkbox" name="q2" value="photosynthesis"
+            aria-describedby="q2-stem"
+            data-option-ref="q2-opt-photosynthesis">
+          <span class="option-label" data-clean-text="Ability to perform photosynthesis">Ability to perform photosynthesis</span>
+        </label>
+      </li>
+
+      <li class="option-item" data-option-id="q2-opt-metabolism" data-correct="true">
+        <label>
+          <input type="checkbox" name="q2" value="metabolism"
+            aria-describedby="q2-stem"
+            data-option-ref="q2-opt-metabolism">
+          <span class="option-label" data-clean-text="Metabolism">Metabolism</span>
+        </label>
+      </li>
+
+      <li class="option-item" data-option-id="q2-opt-nucleus" data-correct="false">
+        <label>
+          <input type="checkbox" name="q2" value="nucleus"
+            aria-describedby="q2-stem"
+            data-option-ref="q2-opt-nucleus">
+          <span class="option-label" data-clean-text="Possession of a membrane-bound nucleus">Possession of a membrane-bound nucleus</span>
+        </label>
+      </li>
+
+      <li class="option-item" data-option-id="q2-opt-stimuli" data-correct="true">
+        <label>
+          <input type="checkbox" name="q2" value="stimuli"
+            aria-describedby="q2-stem"
+            data-option-ref="q2-opt-stimuli">
+          <span class="option-label" data-clean-text="Response to stimuli">Response to stimuli</span>
+        </label>
+      </li>
+
+    </ul>
+  </div><!-- /group -->
+
+  <div class="controls">
+    <button class="btn btn-primary" data-action="reveal" data-target="q-multiple-select">
+      Reveal answers
+    </button>
+    <!-- G14: re-render DOM nodes without changing semantic content -->
+    <button class="btn" data-action="rerender" data-target="q-multiple-select"
+      aria-label="Re-render container nodes (exercises G14)">
+      Re-render (G14)
+    </button>
+    <button class="btn" data-action="reset">Reset</button>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════════════════════════════
+  Q3 — true/false
+  Exercises: G02 (true/false reveal)
+════════════════════════════════════════════════════════════════════ -->
+<section
+  id="q-true-false"
+  class="question-container"
+  tabindex="-1"
+  data-question-id="q-true-false"
+  data-family="true-false"
+  data-state="question"
+  aria-labelledby="q3-heading"
+>
+  <h2 id="q3-heading">Q3 — True / False <span class="state-badge">question</span></h2>
+
+  <div
+    role="radiogroup"
+    aria-labelledby="q3-stem"
+    id="q3-group"
+  >
+    <p id="q3-stem" class="question-stem">
+      The nucleus is the largest organelle in most animal cells.
+    </p>
+
+    <ul class="options-list" aria-label="Answer options">
+
+      <li class="option-item" data-option-id="q3-opt-true" data-correct="true">
+        <label>
+          <input type="radio" name="q3" value="true"
+            aria-describedby="q3-stem"
+            data-option-ref="q3-opt-true">
+          <span class="option-label" data-clean-text="True">True</span>
+        </label>
+      </li>
+
+      <li class="option-item" data-option-id="q3-opt-false" data-correct="false">
+        <label>
+          <input type="radio" name="q3" value="false"
+            aria-describedby="q3-stem"
+            data-option-ref="q3-opt-false">
+          <span class="option-label" data-clean-text="False">False</span>
+        </label>
+      </li>
+
+    </ul>
+  </div><!-- /radiogroup -->
+
+  <div class="controls">
+    <button class="btn btn-primary" data-action="reveal" data-target="q-true-false">
+      Reveal answer
+    </button>
+    <button class="btn" data-action="reset">Reset</button>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════════════════════════════
+  Q4 — flashcard
+  Exercises: G07 (flashcard front/reveal back), G15 (revisit via navigate())
+════════════════════════════════════════════════════════════════════ -->
+<section
+  id="q-flashcard"
+  class="question-container"
+  tabindex="-1"
+  data-question-id="q-flashcard"
+  data-family="flashcard"
+  data-state="question"
+  aria-labelledby="q4-heading"
+>
+  <h2 id="q4-heading">Q4 — Flashcard <span class="state-badge">question</span></h2>
+
+  <div aria-live="polite" aria-atomic="false">
+    <div
+      class="flashcard-face flashcard-front"
+      id="q4-front"
+      aria-label="Flashcard front"
+    >
+      What is the SI unit of electric charge?
+    </div>
+
+    <div
+      class="flashcard-face flashcard-back"
+      id="q4-back"
+      aria-label="Flashcard back — answer"
+      hidden
+      aria-hidden="true"
+    >
+      The coulomb (C) — defined as one ampere-second (A·s).
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-primary" data-action="reveal" data-target="q-flashcard"
+      id="q4-reveal-btn">
+      Reveal back
+    </button>
+    <!-- G15: navigate away then back to test revisit identity -->
+    <button class="btn"
+      onclick="window.navigate('q-multiple-select'); setTimeout(function(){ window.navigate('q-flashcard'); }, 800);"
+      aria-label="Navigate away and back (exercises G15)">
+      Navigate away &amp; back (G15)
+    </button>
+    <button class="btn" data-action="reset">Reset</button>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════════════════════════════
+  Q5 — image-occlusion
+  Exercises: G08 (image occlusion media/region contract)
+  Base image is an inline SVG cell diagram — no external files.
+════════════════════════════════════════════════════════════════════ -->
+<section
+  id="q-image-occlusion"
+  class="question-container"
+  tabindex="-1"
+  data-question-id="q-image-occlusion"
+  data-family="image-occlusion"
+  data-state="question"
+  aria-labelledby="q5-heading"
+>
+  <h2 id="q5-heading">Q5 — Image occlusion <span class="state-badge">question</span></h2>
+
+  <p id="q5-stem" class="question-stem">
+    Identify the two labeled regions in this animal cell diagram.
+  </p>
+
+  <div
+    role="group"
+    aria-labelledby="q5-stem"
+    class="occlusion-wrap"
+    id="q5-group"
+  >
+    <!-- Base image: inline SVG cell diagram — self-authored, no external assets -->
+    <svg
+      viewBox="0 0 300 220"
+      width="300"
+      height="220"
+      role="img"
+      aria-label="Schematic cross-section of an animal cell"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <!-- Cell membrane -->
+      <ellipse cx="150" cy="110" rx="140" ry="100"
+        fill="#e8f4e8" stroke="#4a7c4a" stroke-width="3"/>
+      <!-- Cytoplasm texture dots -->
+      <circle cx="80"  cy="80"  r="3" fill="#b8d8b8" opacity="0.6"/>
+      <circle cx="220" cy="150" r="3" fill="#b8d8b8" opacity="0.6"/>
+      <circle cx="200" cy="70"  r="3" fill="#b8d8b8" opacity="0.6"/>
+      <circle cx="100" cy="160" r="3" fill="#b8d8b8" opacity="0.6"/>
+      <!-- Endoplasmic reticulum (unlabeled background detail) -->
+      <path d="M60,130 Q90,110 100,140 Q110,170 140,155"
+        fill="none" stroke="#8ab88a" stroke-width="1.5" opacity="0.6"/>
+      <!-- Region 1 placeholder: nucleus outline (occluded by mask below) -->
+      <ellipse cx="150" cy="105" rx="45" ry="38"
+        fill="#cce0ff" stroke="#3366cc" stroke-width="2"
+        aria-hidden="true"/>
+      <!-- Region 2 placeholder: mitochondrion outline (occluded by mask below) -->
+      <ellipse cx="235" cy="75" rx="26" ry="14"
+        fill="#ffe0cc" stroke="#cc6633" stroke-width="2"
+        aria-hidden="true"/>
+      <!-- Label arrows (visible regardless of mask state) -->
+      <line x1="205" y1="105" x2="220" y2="105" stroke="#3366cc" stroke-width="1.5"
+        aria-hidden="true"/>
+      <line x1="263" y1="75"  x2="278" y2="75"  stroke="#cc6633" stroke-width="1.5"
+        aria-hidden="true"/>
+    </svg>
+
+    <!-- Mask region 1 — Nucleus -->
+    <div
+      class="occlusion-region"
+      id="q5-region-nucleus"
+      data-region-id="r1"
+      data-alt-text="Nucleus"
+      data-revealed="false"
+      role="button"
+      tabindex="0"
+      aria-label="Occluded region — press Enter or click to reveal"
+      style="top:67px; left:105px; width:90px; height:76px; border-radius:50%;"
+    >?</div>
+
+    <!-- Mask region 2 — Mitochondria -->
+    <div
+      class="occlusion-region"
+      id="q5-region-mito"
+      data-region-id="r2"
+      data-alt-text="Mitochondria"
+      data-revealed="false"
+      role="button"
+      tabindex="0"
+      aria-label="Occluded region — press Enter or click to reveal"
+      style="top:61px; left:209px; width:52px; height:28px; border-radius:50%;"
+    >?</div>
+
+  </div><!-- /occlusion-wrap -->
+
+  <div class="controls">
+    <button class="btn btn-primary" data-action="reveal" data-target="q-image-occlusion">
+      Reveal all regions
+    </button>
+    <button class="btn" data-action="reset">Reset</button>
+  </div>
+</section>
+
+<script src="fixture.js"></script>
+</body>
+</html>
