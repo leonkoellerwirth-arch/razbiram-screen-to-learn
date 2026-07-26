@@ -2,8 +2,35 @@
 
 Turn learning screens into reviewable, evidence-backed razbiram learncards.
 
-> Status: architecture and feasibility package. No production implementation exists in this
-> directory yet.
+> Status: M0 implemented. A local studio reads screenshots, photos, text and captured HTML into
+> reviewable cards, validates them, and exports a capability-gated deck. The browser extension and
+> the artifact store are still design only.
+
+## Getting started
+
+```sh
+./start.sh          # builds the UI if needed, then serves it on http://127.0.0.1:8765
+./start.sh --help   # options
+```
+
+Everything runs on your machine. There is no account, no telemetry, and captured content is never
+sent anywhere.
+
+### Prerequisites
+
+| | Needed for |
+|---|---|
+| Python 3.11+ | the pipeline |
+| Node.js | building the studio UI |
+| **`tesseract`** | **reading images** — without it, text and HTML still work but any screenshot or photo is refused with a clear message |
+
+```sh
+brew install tesseract tesseract-lang            # macOS
+sudo apt install tesseract-ocr tesseract-ocr-bul # Debian/Ubuntu
+```
+
+Extra language packs are picked up automatically if present; there is no language setting to
+choose, because this tool reads material rather than teaching a language.
 
 ## Decision
 
