@@ -214,6 +214,11 @@ built to the current text would emit files the runtime cannot read.
       option-count exception accepts a two-option card with `sourceFormat: "true-false"`, and run
       a real deck through the product's own validator. Update `LIVE_CAPABILITIES` and the pinned
       commit in `HANDOFF.md` if either differs.
+- [x] **P5.12 — Studio UI adopted from razbiram-anki.** React 19 + Vite under `apps/studio`, the
+      donor's `styles.css`, class names, NodeMark and theme handling kept; only the middle
+      replaced (POST to the loopback API instead of in-browser Anki conversion). Tailwind 4 via
+      `@tailwindcss/postcss` as the donor does. `gate.sh` now detects `apps/studio` — it
+      previously skipped everything under `apps/` in silence.
 - [ ] **P5.11 — Vendor the razbiram typefaces locally.** The adopted `razbiram-anki` shell loads
       Manrope/Unbounded/PT Serif from Google Fonts. The studio drops that link: it is local-first
       and must not send the user's IP to a third party on launch, nor break offline Golden runs.
