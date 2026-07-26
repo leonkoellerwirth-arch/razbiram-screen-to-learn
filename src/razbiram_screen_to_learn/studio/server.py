@@ -21,7 +21,23 @@ from razbiram_screen_to_learn import __version__
 from razbiram_screen_to_learn.contracts import dump_document
 from razbiram_screen_to_learn.pipeline import process_markup
 
-STATIC_DIR = Path(__file__).resolve().parent / "static"
+
+def _static_dir() -> Path | None:
+    """Where the built studio lives.
+
+    Packaged installs carry it inside the package; a source checkout has it under
+    ``apps/studio/dist`` after ``npm run build``. Returning ``None`` is a valid state — the API
+    still serves, and ``serve()`` says so rather than presenting a blank page.
+    """
+    packaged = Path(__file__).resolve().parent / "static"
+    if packaged.is_dir():
+        return packaged
+    repo_root = Path(__file__).resolve().parents[3]
+    built = repo_root / "apps" / "studio" / "dist"
+    return built if built.is_dir() else None
+
+
+STATIC_DIR = _static_dir()
 
 #: Intake is bounded on purpose; SOLUTION_ARCHITECTURE.md sets explicit limits per artifact.
 MAX_UPLOAD_BYTES = 20 * 1024 * 1024
@@ -78,8 +94,8 @@ def create_app() -> FastAPI:
             "unsupported": result.unsupported,
         }
 
-    if STATIC_DIR.is_dir():
-        app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+    if STATIC_DIR is not None:
+        app.mount("/assets", StaticFiles(directory=STATIC_DIR / "assets"), name="assets")
 
         @app.get("/")
         def index() -> FileResponse:
@@ -93,8 +109,9 @@ def serve(*, host: str = "127.0.0.1", port: int = 8765, open_browser: bool = Tru
 
     url = f"http://{host}:{port}/"
     print(f"Studio on {url}  (loopback only, no telemetry)")
-    if not STATIC_DIR.is_dir():
-        print("note: the studio UI is not built yet; the API is still available.")
+    if STATIC_DIR is None:
+        print("note: the UI is not built. Run: (cd apps/studio && npm ci && npm run build)")
+        print("      the API is available regardless.")
     if open_browser:
         webbrowser.open(url)
     uvicorn.run(create_app(), host=host, port=port, log_level="info")
