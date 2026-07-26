@@ -38,11 +38,10 @@ def test_process_returns_the_full_result(client: TestClient) -> None:
     body = _upload(client).json()
     assert body["captureIr"]["schemaVersion"] == "capture-ir.v1"
     assert len(body["captureIr"]["cards"]) == 4
-    assert body["export"]["deck"]["meta"]["cardCount"] == 2
+    # Three of the four export; multiple-select stays blocked until its platform change exists.
+    assert body["export"]["deck"]["meta"]["cardCount"] == 3
     assert set(body["export"]["blockedCardIds"]) == {
-        card["cardId"]
-        for card in body["captureIr"]["cards"]
-        if card["family"] in {"multiple-select", "true-false"}
+        card["cardId"] for card in body["captureIr"]["cards"] if card["family"] == "multiple-select"
     }
 
 

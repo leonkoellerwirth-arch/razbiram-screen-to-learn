@@ -73,13 +73,19 @@ class TestExtraction:
 
 
 class TestCapabilityGate:
-    def test_live_target_blocks_multiple_select_and_true_false(self, markup: str) -> None:
+    def test_live_target_blocks_only_multiple_select(self, markup: str) -> None:
+        """True/false is now declared; multiple-select still is not (BIBLE invariant 5)."""
         result = process_markup(markup, capabilities=LIVE_CAPABILITIES)
-        blocked = {b.family for b in result.export.blocked}
-        assert blocked == {"multiple-select", "true-false"}
+        assert {b.family for b in result.export.blocked} == {"multiple-select"}
         assert result.export.deck is not None
-        exported = {card["type"] for card in result.export.deck["cards"]}
-        assert exported == {"mcq", "flashcard"}
+        assert result.export.deck["meta"]["cardCount"] == 3
+
+    def test_true_false_exports_with_its_source_format(self, markup: str) -> None:
+        result = process_markup(markup, capabilities=LIVE_CAPABILITIES)
+        card = next(c for c in result.export.deck["cards"] if c.get("sourceFormat") == "true-false")
+        assert len(card["options"]) == 2
+        assert card["correctAnswer"] in [o["text"] for o in card["options"]]
+        assert sum(1 for o in card["options"] if o["isCorrect"]) == 1
 
     def test_extended_target_exports_everything(self, markup: str) -> None:
         result = process_markup(markup, capabilities=EXTENDED)
@@ -106,15 +112,19 @@ class TestCapabilityGate:
 class TestLiveTargetRules:
     """Rules read from razbiram.com's own validator, not from prose."""
 
-    def test_mcq_option_count_is_within_the_live_bounds(self, markup: str) -> None:
-        """Scoped to the live target on purpose.
+    def test_mcq_option_count_is_within_bounds_except_true_false(self, markup: str) -> None:
+        """3-5 options is the rule; a true/false card is the one declared exception.
 
-        A two-option card only becomes legal once a target declares mcq.two-option.v1; under
-        EXTENDED the true/false card is exported with two options by design.
+        It carries sourceFormat so the target can tell the two cases apart rather than having to
+        guess from the option count.
         """
         result = process_markup(markup, capabilities=LIVE_CAPABILITIES)
         for card in result.export.deck["cards"]:
-            if card["type"] == "mcq":
+            if card["type"] != "mcq":
+                continue
+            if card.get("sourceFormat") == "true-false":
+                assert len(card["options"]) == 2
+            else:
                 assert MCQ_MIN_OPTIONS <= len(card["options"]) <= MCQ_MAX_OPTIONS
 
     def test_correct_answer_matches_an_option_text_exactly(self, markup: str) -> None:

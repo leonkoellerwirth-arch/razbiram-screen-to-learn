@@ -17,8 +17,10 @@ from razbiram_screen_to_learn.contracts import CaptureIR, Card
 
 TARGET_PROFILE = "studywithme-bg.learncard.v1"
 
-#: The live validator requires 3-5 options for every mcq card (deckSchema.ts:200). It has no
-#: `sourceFormat` handling at all and no true/false exception, so a two-option deck is rejected.
+#: The target validator requires 3-5 options per mcq card (deckSchema.ts:200 at the pinned
+#: commit). A true/false card is the documented exception and carries `sourceFormat: "true-false"`
+#: with exactly two options; the razbiram.com change that accepts it is in progress, and this
+#: bound is not applied to that path.
 MCQ_MIN_OPTIONS = 3
 MCQ_MAX_OPTIONS = 5
 
@@ -95,8 +97,8 @@ def _export_flashcard(card: Card, sequence: int) -> tuple[dict | None, BlockedCa
 def _export_true_false(card: Card, sequence: int) -> tuple[dict | None, BlockedCard | None]:
     """Project the semantic true/false family onto the target's two-option MCQ shape.
 
-    Only reachable when the target declares it can render two options; the live product cannot,
-    so this path exists for a target that has been extended, not for today's razbiram.com.
+    Reachable only when the target declares ``mcq.two-option.v1``. The IR keeps true/false as its
+    own family and it becomes a two-option MCQ here, at the boundary — never earlier.
     """
     if card.answer is None or not card.labels:
         return None, _block(card, "true-false needs an answer and both labels")

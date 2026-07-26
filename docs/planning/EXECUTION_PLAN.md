@@ -199,14 +199,21 @@ built to the current text would emit files the runtime cannot read.
       declare it now with a store justification, or document that observe-mode Capture Lite requires
       the user to open the popup per bundle. Deciding after store submission costs a re-review.
 
-- [!] **P4.7 — DECISION: M0 criterion 6 (true/false) cannot pass against the live product.**
-      `FEASIBILITY.md` criterion 6 promises "true/false exports and renders as a correct
-      two-option MCQ". Verified against `razbiram.com/app/src/lib/learncards/deckSchema.ts:200`:
-      MCQ requires 3-5 options, `sourceFormat` exists nowhere in the product, and there is no
-      true/false exception. A two-option deck is rejected. This is the same shape of problem as
-      multiple-select and needs the same coordinated additive change (`mcq.two-option.v1`).
-      *Choose:* (a) move criterion 6 to the same gate as the multiple-select platform work (M4),
-      or (b) pull the razbiram.com two-option change into M0. Recommendation: (a).
+- [x] **P4.7 — RESOLVED 2026-07-26: true/false is supported, the platform change is in flight.**
+      The live validator required 3-5 mcq options with no `sourceFormat` handling and no
+      true/false exception (`deckSchema.ts:200`), so the documented two-option export was
+      rejected. That change is being made in razbiram.com, so this repo now declares
+      `mcq.two-option.v1` and exports true/false as a two-option MCQ carrying
+      `sourceFormat: "true-false"`. `FEASIBILITY.md` criterion 6 stands unchanged.
+      *Open reconciliation, not blocking:* the capability identifier used here is provisional —
+      confirm it against what razbiram.com actually ships, together with the option-count
+      exception. Until then the export is correct by construction but unverified end to end
+      against the live product. See P4.8.
+- [ ] **P4.8 — Verify the two-option export against the shipped razbiram.com change.** Re-read
+      `deckSchema.ts` once the change lands: confirm the capability identifier, confirm the
+      option-count exception accepts a two-option card with `sourceFormat: "true-false"`, and run
+      a real deck through the product's own validator. Update `LIVE_CAPABILITIES` and the pinned
+      commit in `HANDOFF.md` if either differs.
 - [ ] **P5.11 — Vendor the razbiram typefaces locally.** The adopted `razbiram-anki` shell loads
       Manrope/Unbounded/PT Serif from Google Fonts. The studio drops that link: it is local-first
       and must not send the user's IP to a third party on launch, nor break offline Golden runs.
