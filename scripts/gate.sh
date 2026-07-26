@@ -26,6 +26,9 @@ fi
 # --- Web surface ---
 WEB="."
 [ -f app/package.json ] && WEB="app"
+# This repo keeps its front ends under apps/ (REPOSITORY_BLUEPRINT.md), which the two paths above
+# do not reach — without this the studio's typecheck, tests and build were skipped in silence.
+[ -f apps/studio/package.json ] && WEB="apps/studio"
 if [ -f "$WEB/package.json" ]; then
   if [ -d "$WEB/node_modules" ]; then
     # Single source of truth: if the repo defines verify:ci (the web analog of this gate —

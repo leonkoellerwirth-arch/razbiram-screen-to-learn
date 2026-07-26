@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>razbiram-screen-to-learn — learning screens → reviewable cards</title>
+    <!--
+      Adopted from razbiram-anki's shell with one deliberate difference: that app loads the
+      razbiram typefaces from Google Fonts, and this one does not. The studio is local-first and
+      handles captured learning content, so a page load must stay offline — a webfont request
+      would send the user's IP to a third party on every launch and would break offline Golden
+      runs. styles.css keeps the same font stack and falls back to system faces until the faces
+      are vendored locally. Tracked as a follow-up in docs/planning/EXECUTION_PLAN.md.
+      The razbiram visual identity remains © razbiram.com — see styles.css.
+    -->
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -199,6 +199,19 @@ built to the current text would emit files the runtime cannot read.
       declare it now with a store justification, or document that observe-mode Capture Lite requires
       the user to open the popup per bundle. Deciding after store submission costs a re-review.
 
+- [!] **P4.7 — DECISION: M0 criterion 6 (true/false) cannot pass against the live product.**
+      `FEASIBILITY.md` criterion 6 promises "true/false exports and renders as a correct
+      two-option MCQ". Verified against `razbiram.com/app/src/lib/learncards/deckSchema.ts:200`:
+      MCQ requires 3-5 options, `sourceFormat` exists nowhere in the product, and there is no
+      true/false exception. A two-option deck is rejected. This is the same shape of problem as
+      multiple-select and needs the same coordinated additive change (`mcq.two-option.v1`).
+      *Choose:* (a) move criterion 6 to the same gate as the multiple-select platform work (M4),
+      or (b) pull the razbiram.com two-option change into M0. Recommendation: (a).
+- [ ] **P5.11 — Vendor the razbiram typefaces locally.** The adopted `razbiram-anki` shell loads
+      Manrope/Unbounded/PT Serif from Google Fonts. The studio drops that link: it is local-first
+      and must not send the user's IP to a third party on launch, nor break offline Golden runs.
+      Self-host the faces under `apps/studio/public/fonts/` so the identity is exact again.
+
 ---
 
 ## Phase 5 — M0 implementation (only after Phases 1–4)
@@ -221,7 +234,10 @@ slice when its phase starts, against the then-repaired contracts.
       typed view, asserting *agreement* on the shared example instead. Either ratify that and
       reword the CI gate, or commit to generating the schemas and regenerate them all.
 - [ ] **P5.3** `ingest/`: screenshot, text, and PDF adapters into one envelope; the three fixtures
-      from `FEASIBILITY.md` criterion 3.
+      from `FEASIBILITY.md` criterion 3. *Partial:* the studio and CLI accept HTML/text today and
+      share one pipeline, but there is no `ingest-envelope.v1` layer, no image adapter and no PDF
+      adapter. Criterion 3 ("screenshot, text, digital PDF and scanned-PDF fixtures enter the same
+      IR") is therefore NOT met yet.
 - [x] **P5.4** Identity module implementing P1.6 exactly, with determinism tests that hash the same
       input twice through independent paths.
 - [x] **P5.5** Synthetic learning-page fixture with question/reveal transitions (owned content, no

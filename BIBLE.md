@@ -80,6 +80,12 @@ backend.
 - **2026-07-25 — razbiram-anki integration.** Adopt a reviewed-deck handoff to razbiram-anki for
   Anki/CrowdAnki outputs. Do not make CrowdAnki or current razbiram-anki app internals the Capture
   IR or universal ecosystem contract.
+- **2026-07-26 — True/false needs a razbiram.com change too.** Verified in
+  `app/src/lib/learncards/deckSchema.ts:200`: the live validator requires 3–5 options per MCQ,
+  `sourceFormat` appears nowhere in the product, and there is no true/false exception. The
+  documented two-option compatibility export is therefore rejected today. True/false is now
+  capability-gated behind `mcq.two-option.v1` exactly like multiple-select — a second coordinated
+  platform change, not a free compatibility win.
 - **2026-07-26 — The razbiram-anki round-trip is out of M0 scope.** It gates M2A instead. M0 could
   not otherwise exit without first delivering M2A: the round-trip needs the hub-owned
   `razbiram.recall-deck.v1` contract and a razbiram-anki import path, neither of which exists. M0
