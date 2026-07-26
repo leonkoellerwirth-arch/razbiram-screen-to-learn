@@ -21,10 +21,16 @@ digits when explicitly noted.
 
 ### Markup stripping
 
-Remove all XML/HTML tag content (characters between `<` and `>` inclusive) before any other
-normalization. Do not interpret entity references; decode `&amp;`, `&lt;`, `&gt;`, `&quot;`,
-`&apos;` and numeric entities (`&#…;`, `&#x…;`) to their Unicode code points first, then strip
-tags.
+Exactly two steps, in this order:
+
+1. **Strip tags.** Remove all XML/HTML tag content — characters between `<` and `>` inclusive.
+2. **Decode entities.** Decode `&amp;`, `&lt;`, `&gt;`, `&quot;`, `&apos;` and numeric entities
+   (`&#…;`, `&#x…;`) to their Unicode code points.
+
+The order is load-bearing and must not be swapped. Decoding first turns `&lt;b&gt;` into `<b>`,
+which the tag pass would then delete — destroying text the user actually saw. Stripping first
+removes only real markup. For DOM-sourced text the distinction is moot, because the browser has
+already decoded entities; it matters for raw HTML input such as pasted markup.
 
 ### Feedback annotation stripping (cleanText)
 

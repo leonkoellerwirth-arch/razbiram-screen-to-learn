@@ -209,11 +209,11 @@ slice when its phase starts, against the then-repaired contracts.
 - [x] **P5.1** Repo skeleton: `pyproject.toml`, `src/razbiram_screen_to_learn/`, `tests/`, ruff +
       pytest. Gate must stay green from the first commit — it activates the Python checks
       automatically.
-- [ ] **P5.2** `contracts/`: Pydantic 2 models for `ingest-envelope.v1`, `capture-ir.v1`,
+- [x] **P5.2** `contracts/`: Pydantic 2 models for `ingest-envelope.v1`, `capture-ir.v1`,
       `extension-capture.v1`, plus schema-generation and the P3.3 cross-field validators.
 - [ ] **P5.3** `ingest/`: screenshot, text, and PDF adapters into one envelope; the three fixtures
       from `FEASIBILITY.md` criterion 3.
-- [ ] **P5.4** Identity module implementing P1.6 exactly, with determinism tests that hash the same
+- [x] **P5.4** Identity module implementing P1.6 exactly, with determinism tests that hash the same
       input twice through independent paths.
 - [ ] **P5.5** Synthetic learning-page fixture with question/reveal transitions (owned content, no
       third-party capture).
