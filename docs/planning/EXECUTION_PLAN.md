@@ -30,17 +30,17 @@ Three independent reviews, all findings below re-verified by hand against the fi
 
 ## Phase 0 — Backbone and session hygiene
 
-- [ ] **P0.1 — Commit the Claude hook wiring.** `.claude/hooks/*.sh` were tracked but dormant: no
+- [x] **P0.1 — Commit the Claude hook wiring.** `.claude/hooks/*.sh` were tracked but dormant: no
       `.claude/settings.json` existed, so neither the sensitive-file guard nor the lint-on-edit
       guard ever ran. `.claude/settings.json` now wires `PreToolUse`, `PostToolUse`, and a `Stop`
       budget warning. Smoke-tested: prod-env write blocked (exit 2), normal write allowed (exit 0).
       *Done when:* committed, and the same gap is reported to `razbiram-listen` / `razbiram-nlp`,
       which have identical dormant hooks.
-- [ ] **P0.2 — Re-pin `studywithme_db`.** `HANDOFF.md:38` pins `12f9381`; the repo is one commit
+- [x] **P0.2 — Re-pin `studywithme_db`.** `HANDOFF.md:38` pins `12f9381`; the repo is one commit
       ahead at `553e857` ("Add: Anki processing workflow"). Verified that commit does **not** touch
       `app/studywithme-bg/learncards/`, so the reference deck is unaffected.
       *Done when:* the pin reads `553e857`, or the entry states the pin is deliberately one behind.
-- [ ] **P0.3 — Confirm the other five pins.** `screenshot-to-code 6094fd7`, `razbiram-nlp 48b5beb`,
+- [x] **P0.3 — Confirm the other five pins.** `screenshot-to-code 6094fd7`, `razbiram-nlp 48b5beb`,
       `razbiram-anki 119bcea`, `razbiram-listen 6d190e2`, `razbiram.com fd88f7c2` all exist and are
       each repo's current HEAD. *Done when:* recorded in `HANDOFF.md` as re-verified 2026-07-26.
 
@@ -51,7 +51,7 @@ Three independent reviews, all findings below re-verified by hand against the fi
 The single most important finding. Four documents describe the question↔reveal join, and no two of
 them agree. This sits directly under M0's core deliverable, so it must be settled first.
 
-- [ ] **P1.1 — Fix the fingerprint/join contradiction.**
+- [x] **P1.1 — Fix the fingerprint/join contradiction.**
       `BROWSER_CAPTURE.md:140` hashes "normalized option texts **in source order**" into
       `questionFingerprint`. `PIPELINE.md:71` joins question and reveal states by grouping on
       `questionFingerprint`. `GOLDEN_SET.md:35` requires case G13 — *options randomized between
@@ -60,7 +60,7 @@ them agree. This sits directly under M0's core deliverable, so it must be settle
       *Decide:* either sort option texts before hashing, or make the join key something other than
       `questionFingerprint` (G13's own expectation says "stable semantic/DOM identity").
       *Done when:* one mechanism is stated in `BROWSER_CAPTURE.md` and `PIPELINE.md` agrees with it.
-- [ ] **P1.2 — Add `captureState` to `extension-capture.v1`.** Verified: the schema's top-level
+- [x] **P1.2 — Add `captureState` to `extension-capture.v1`.** Verified: the schema's top-level
       properties are `schemaVersion, captureId, createdAt, extension, page, captureMode, artifacts,
       privacy, questionFingerprint` — there is no way to say whether a capture *is* the question
       state or the reveal state. `BROWSER_CAPTURE.md:155-169` defines `QuestionCaptured` and
@@ -68,20 +68,20 @@ them agree. This sits directly under M0's core deliverable, so it must be settle
       parse artifacts to find out which it holds. `additionalProperties: false` means this cannot be
       added later without a version bump.
       *Done when:* `captureState` (enum) and `stateFingerprint` exist in the schema and the example.
-- [ ] **P1.3 — Make `questionFingerprint` required, or state why it is optional.** It is absent
+- [x] **P1.3 — Make `questionFingerprint` required, or state why it is optional.** It is absent
       from the schema's `required` array while `PIPELINE.md:71` treats it as the join key.
-- [ ] **P1.4 — Publish `semantic-snapshot.v1.schema.json`.** Verified absent from `docs/schemas/`.
+- [x] **P1.4 — Publish `semantic-snapshot.v1.schema.json`.** Verified absent from `docs/schemas/`.
       `semantic/question.json` is the artifact the Detect, Extract, and Join stages actually read,
       and it is the only major artifact with no published schema — while `DATA_CONTRACTS.md:7-14`
       lists `extension-capture.v1` as a *public* contract. Without it, the TypeScript extension and
       the Python extractors can diverge silently, and M0's IR validator cannot validate extension
       input. Minimum fields: node type, role, accessible name, visible text, normalized bounding
       box, checked/expanded/disabled flags, shadow-root indicator, container reference.
-- [ ] **P1.5 — Give `captureMode: "region"` a home for its geometry.** The enum accepts `"region"`
+- [x] **P1.5 — Give `captureMode: "region"` a home for its geometry.** The enum accepts `"region"`
       but no field carries the CSS-pixel rect and device-pixel ratio that
       `BROWSER_EXTENSION.md:43-47` says are stored. Simplest fix: define it in the P1.4 snapshot
       schema and cross-reference it.
-- [ ] **P1.6 — Specify the identity algorithms.** `DATA_CONTRACTS.md:333` defines `sourceId` as
+- [x] **P1.6 — Specify the identity algorithms.** `DATA_CONTRACTS.md:333` defines `sourceId` as
       "SHA-256 of source scope + question fingerprint" — neither input is fully defined, and
       "normalized" is never defined (Unicode form? whitespace? case? markup stripping?). Serialize
       exactly, or two implementations will disagree and `GOLDEN_SET.md:111`'s "100% deterministic
@@ -96,7 +96,7 @@ them agree. This sits directly under M0's core deliverable, so it must be settle
 The documented compatibility target diverges from the deck the product actually ships. An exporter
 built to the current text would emit files the runtime cannot read.
 
-- [ ] **P2.1 — `access` vs `accessTier`.** `DATA_CONTRACTS.md:309` instructs "Use `accessTier`, not
+- [x] **P2.1 — `access` vs `accessTier`.** `DATA_CONTRACTS.md:309` instructs "Use `accessTier`, not
       the legacy/drifted `access` key." Verified against the live file
       `studywithme_db/app/studywithme-bg/learncards/Biophysics/config.json`: its keys are
       `topicKey, access, year, semester, title, description, typedAnswerEvaluation, decks` —
@@ -104,15 +104,15 @@ built to the current text would emit files the runtime cannot read.
       not the contract. *Action:* audit the razbiram.com config loader; until it accepts
       `accessTier`, the exporter writes `access` (or both). Also note `typedAnswerEvaluation`, which
       the documented shape omits entirely.
-- [ ] **P2.2 — Correct the `meta.source` hull.** `DATA_CONTRACTS.md:229-233` documents
+- [x] **P2.2 — Correct the `meta.source` hull.** `DATA_CONTRACTS.md:229-233` documents
       `{"kind": "browser-capture", "rightsBasis": "permission-confirmed"}`. The real reference deck
       has `{"file": "deck.json", "book": "Biophysics Exam Preparation", "originalDeckName":
       "L1 Cybernatics"}` — Anki-import provenance. Mark the documented shape as the *proposed output
       shape for new exports* and require the validator to accept both.
-- [ ] **P2.3 — Name the repo that owns the reference deck.** `DATA_CONTRACTS.md:211-212` cites
+- [x] **P2.3 — Name the repo that owns the reference deck.** `DATA_CONTRACTS.md:211-212` cites
       `app/studywithme-bg/learncards/Biophysics/deck-01.json` without saying it lives in
       **`studywithme_db`**, not `razbiram.com`.
-- [ ] **P2.4 — Record what was confirmed correct.** `schemaId: studywithme-bg.learncard.v1`, the
+- [x] **P2.4 — Record what was confirmed correct.** `schemaId: studywithme-bg.learncard.v1`, the
       single-choice output shape, `correctAnswer` as a singular string, `scoring.mode:
       single-best-answer`, and `cardCount: 33` matching 33 real cards all verified accurate.
       razbiram.com's MCQ runtime is confirmed single-answer at every layer: `role="radiogroup"`,
@@ -123,38 +123,38 @@ built to the current text would emit files the runtime cannot read.
 
 ## Phase 3 — Internal consistency (SHOULD-FIX)
 
-- [ ] **P3.1 — One canonical schema path.** `REPOSITORY_BLUEPRINT.md:41-48` puts schemas at
+- [x] **P3.1 — One canonical schema path.** `REPOSITORY_BLUEPRINT.md:41-48` puts schemas at
       root-level `schemas/` as `capture-ir.v1.json`; the real files are `docs/schemas/` as
       `capture-ir.v1.schema.json`, which is what `DATA_CONTRACTS.md:117` cross-references. The
       `QUALITY_AND_CI.md:26` "generated schemas match committed schemas" gate needs one true path.
       Also mark `reviewed-deck.ref.json`, `event-protocol.v1.json`, `validation-report.v1.json` as
       later deliverables — they are in the tree but do not exist.
-- [ ] **P3.2 — Close the schema typo loophole.** `capture-ir.v1.schema.json` uses
+- [x] **P3.2 — Close the schema typo loophole.** `capture-ir.v1.schema.json` uses
       `"additionalProperties": true` at lines 236 (`option`), 599 (`card`), 779 (`evidence`) while
       using `false` for every other object. A typo like `corectOptionIds` validates clean today.
       Prefer `"unevaluatedProperties": false`, which composes correctly with the `allOf`/`if`/`then`
       family discrimination.
-- [ ] **P3.3 — Name the cross-field validators explicitly.** JSON Schema cannot express
+- [x] **P3.3 — Name the cross-field validators explicitly.** JSON Schema cannot express
       `correctOptionIds` == the set of `isCorrect: true` ids (`DATA_CONTRACTS.md:174`),
       `meta.cardCount === cards.length`, or evidence referential integrity. List them in
       `QUALITY_AND_CI.md` as code-validator duties so nobody assumes the schema covers them.
-- [ ] **P3.4 — Repair `capture-ir.v1.example.json`.** Verified: its top-level keys are
+- [x] **P3.4 — Repair `capture-ir.v1.example.json`.** Verified: its top-level keys are
       `schemaVersion, sessionId, source, target, deck, cards` — there is **no** `evidence` array,
       yet its cards reference `ev_question_dom`, `ev_key_a`, `ev_key_b`, `ev_key_c`. The primary
       contract fixture ships dangling references and still passes schema validation.
-- [ ] **P3.5 — Fill the logical-component gaps.** `SOLUTION_ARCHITECTURE.md:75-142` defines seven
+- [x] **P3.5 — Fill the logical-component gaps.** `SOLUTION_ARCHITECTURE.md:75-142` defines seven
       modules; `REPOSITORY_BLUEPRINT.md:29-39` has thirteen. `api`, `jobs`, `pairing`, `security`,
       and `storage` exist only in the tree — and `pairing` carries real security requirements.
       `AGENTS.md:5` sends agents to `SOLUTION_ARCHITECTURE.md` as the primary reference, so the gap
       matters.
-- [ ] **P3.6 — Specify loopback port discovery.** Both reviews raised this independently.
+- [x] **P3.6 — Specify loopback port discovery.** Both reviews raised this independently.
       `SOLUTION_ARCHITECTURE.md:205` says "ephemeral port"; `BROWSER_EXTENSION.md:169` says "random
       port"; `BROWSER_EXTENSION.md:162-165` describes a pairing code — but nothing says how the
       extension learns the port. Range-scanning is a security anti-pattern and is ruled out by the
       strict Host/Origin checks. ADR 007:43 makes the pairing protocol a public compatibility
       boundary, so it must be pinned down before M2E. Token authentication is sound either way;
       port secrecy is not a claimed property.
-- [ ] **P3.7 — Fix the reuse-table framing.** `REPOSITORY_BLUEPRINT.md:133` bills
+- [x] **P3.7 — Fix the reuse-table framing.** `REPOSITORY_BLUEPRINT.md:133` bills
       `backend/asset_extraction.py` as "EXIF/pixel/crop/schema-output helpers"; at the pinned commit
       it is a Gemini-specific extraction pipeline whose generic parts must be carved out.
       `UPSTREAM_REUSE.md:162-179` already describes this accurately — align the blueprint to it.
@@ -179,17 +179,17 @@ built to the current text would emit files the runtime cannot read.
       contract source of truth is Pydantic 2 models in `src/razbiram_nlp/models.py` with
       `extra="forbid"`, and ADRs live at `docs/adr/NNN-title.md` (001–003 still unwritten). Follow
       that convention rather than inventing one. Blocks P4.3 and all M2A work.
-- [ ] **P4.3 — Do not build `packages/generated-contracts/` yet.** `REPOSITORY_BLUEPRINT.md:24`
+- [x] **P4.3 — Do not build `packages/generated-contracts/` yet.** `REPOSITORY_BLUEPRINT.md:24`
       plans generated TypeScript types for a hub contract that does not exist. razbiram-listen
       already hit this: its BIBLE decision D7 records a hand-kept `contract.py` mirror that exists
       "only until the hub publishes a JSON Schema." Building the TypeScript equivalent against a
       *non-existent* contract repeats a lesson the family already paid for. Defer until P4.2 lands.
-- [ ] **P4.4 — Align the blueprint with the family pattern.** `REPOSITORY_BLUEPRINT.md:57-60` lists
+- [x] **P4.4 — Align the blueprint with the family pattern.** `REPOSITORY_BLUEPRINT.md:57-60` lists
       only `gate.sh` and budget scripts; the established sibling backbone is five scripts —
       `state.sh`, `gate.sh`, `secure.sh`, `session-snapshot.sh`, `budget.sh` — and `state.sh` and
       `session-snapshot.sh` are load-bearing for the session skills. This repo *has* all five; only
       the blueprint text is wrong.
-- [ ] **P4.5 — Record the CEFR colour trap.** Both `razbiram-listen` and `razbiram-anki` recorded
+- [x] **P4.5 — Record the CEFR colour trap.** Both `razbiram-listen` and `razbiram-anki` recorded
       that the ECOSYSTEM.md CEFR colour table conflicts with the real CSS tokens in
       `razbiram-nlp/web/styles.css`, with an explicit "don't 'correct' them" warning. The Studio UI
       must take token values from the CSS, not the table. Add to `CORPORATE_IDENTITY.md`.
