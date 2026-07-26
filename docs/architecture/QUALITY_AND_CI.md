@@ -36,6 +36,17 @@ never part of the required pull-request gate.
 - cross-repo fixtures prove reviewed-deck → razbiram-anki → `.apkg` for supported families;
 - unsupported Anki card families fail with a capability report rather than degrading.
 
+JSON Schema cannot express the following cross-field constraints; they are code-validator duties:
+
+- `correctOptionIds` is exactly the set of option ids where `isCorrect` is true;
+- `meta.cardCount` equals `cards.length`;
+- every `evidenceId` referenced in a card exists in the evidence ledger;
+- single-choice `correctAnswer` equals the correct option's `text`;
+- true/false cards have exactly two options;
+- matching cards have referential integrity between pairs and unique item IDs across both sides;
+- typed cards have at least one acceptable answer;
+- image-occlusion media references exist and their content hashes match.
+
 ## Security gates
 
 - gitleaks and private-key detection;

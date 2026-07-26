@@ -44,6 +44,25 @@ This is the fourth family UI and triggers the Rule-of-Three case for a shared
 
 Never hardcode these values in components. Consume the versioned tokens or the `swm-*` bridge.
 
+## CEFR band colours
+
+The Studio UI takes CEFR band colours from the CSS token source
+(`razbiram-nlp/web/src/styles.css`), not from the ECOSYSTEM table in
+`razbiram-nlp/docs/razbiram-ECOSYSTEM.md`. The ECOSYSTEM table carries stale
+green→red values; the CSS is authoritative and is verified by razbiram-anki's
+BIBLE.md §2 invariant 5. Do not "correct" the CSS values to match the table.
+
+Current values (background / text, emerald→teal→blue→indigo→violet→amber):
+
+| Band | Background | Text |
+|------|-----------|------|
+| A1 | `#d1fae5` | `#047857` |
+| A2 | `#ccfbf1` | `#0f766e` |
+| B1 | `#dbeafe` | `#1d4ed8` |
+| B2 | `#e0e7ff` | `#4338ca` |
+| C1 | `#ede9fe` | `#6d28d9` |
+| C2 | `#fef3c7` | `#b45309` |
+
 ## Typography
 
 - Manrope for UI and body;

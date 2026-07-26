@@ -37,13 +37,6 @@ razbiram-screen-to-learn/
 │       ├── review/                   decisions/audit
 │       ├── security/                 origin/source/retention policy
 │       └── storage/                  SQLite + artifact store
-├── schemas/
-│   ├── capture-ir.v1.json
-│   ├── extension-capture.v1.json
-│   ├── ingest-envelope.v1.json
-│   ├── reviewed-deck.ref.json        pinned hub reference, never forked
-│   ├── event-protocol.v1.json
-│   └── validation-report.v1.json
 ├── fixtures/
 │   ├── pages/                        owned synthetic HTML apps
 │   ├── expected/                     exact IR/export JSON
@@ -55,15 +48,25 @@ razbiram-screen-to-learn/
 │   ├── playwright/
 │   └── golden/
 ├── scripts/
+│   ├── state.sh
 │   ├── gate.sh
-│   ├── token-budget.*
-│   └── loc-budget.*
+│   ├── secure.sh
+│   ├── session-snapshot.sh
+│   ├── budget.sh
+│   └── context.sh
 ├── docs/
 │   ├── architecture/
 │   ├── decisions/
 │   ├── design/
 │   ├── evaluation/
 │   └── schemas/
+│       ├── capture-ir.v1.schema.json
+│       ├── extension-capture.v1.schema.json
+│       ├── ingest-envelope.v1.schema.json
+│       ├── semantic-snapshot.v1.schema.json
+│       ├── reviewed-deck.ref.json             planned M2A; pinned hub reference, never forked
+│       ├── event-protocol.v1.schema.json      planned M1
+│       └── validation-report.v1.schema.json   planned M5
 └── .github/
     ├── workflows/ci.yml
     ├── PULL_REQUEST_TEMPLATE.md
@@ -132,7 +135,7 @@ Selective attributed ports from screenshot-to-code:
 | `backend/agent/providers/base.py` | provider session/event interface concepts |
 | `backend/agent/providers/factory.py` | provider factory/capability selection |
 | `backend/uploaded_assets/store.py` | validated image decode/hash concepts |
-| `backend/asset_extraction.py` | EXIF/pixel/crop/schema-output helpers |
+| `backend/asset_extraction.py` | Gemini-specific asset pipeline; carve out the generic parts only: MIME allowlist, bounded decode, SHA-256 content IDs, EXIF/HEIF normalisation, canonical pixel matrix, normalised bounding boxes, Pydantic-validated crop validation — remainder requires redesign (job-scoped storage, async I/O, multi-session isolation, artifact references) |
 | `backend/fs_logging/` | sanitized run recording |
 
 Every port:
