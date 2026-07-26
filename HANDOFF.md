@@ -3,39 +3,23 @@
 Session handoffs, **newest entry first**. Written at session stop and read after the Base
 Constitution and BIBLE at session start.
 
-## 2026-07-25 — Architecture, dual intake, Anki boundary, and Base onboarding
+## 2026-07-26 — Leaked remote PAT, and a push blocker
 
-_HEAD before concept work `1f7a982` · upstream status unknown · target gate PASS · Base doctor
-PASS · secure pending commit/push_
+_gate PASS · tree clean · **36 commits local-only**. The day's engineering is in
+`git log d4d1837..HEAD` + `EXECUTION_PLAN.md`; not restated here by an agent who wasn't in it._
 
-- **Done:** Completed the feasibility and solution-architecture package; specified standalone
-  screenshot/PDF/text intake, Chrome/Firefox extension, Capture Lite, local pairing, Capture IR,
-  review/validation/export, Razbiram CI, security, card-family capability handling, and
-  razbiram-anki integration. Added the canonical `dev/base` backbone, session skills, security
-  files, ownership, and CI.
-- **Decided:** Conditional GO. Standalone and extension converge before extraction. Multiple
-  select is lossless or blocked. Capture IR remains private; razbiram-anki connects only after
-  review through a proposed hub-owned reviewed-deck contract. This repo is an MIT Bridge/Tool
-  with a Razbiram identity carve-out. Base Rule of Three blocks a shared Anki code package until
-  a third real consumer exists.
-- **Open:** Hub approval/name for `razbiram.recall-deck.v1`; final multiple-select capability
-  identifier; first cloud-vision providers; whether Safari follows Chrome/Firefox; whether a
-  curated-content PR export follows file export.
-- **Next:** Approve and build Roadmap M0: common screenshot/PDF/text ingest, minimal
-  Chrome/Firefox fixture, `.razcapture` round-trip/pairing, reviewed-deck projection, native
-  Learn JSON fixture, and one supported razbiram-anki `.apkg` round-trip.
-- **Continuity warnings:** Current razbiram.com MCQ runtime is single-answer. Current
-  razbiram-anki accepts `.apkg`/CrowdAnki only and cannot be treated as the universal deck
-  contract. Re-check all pinned sibling commits before implementation.
+- **⚠ A live GitHub PAT sat in this repo's git remote URL** (found from the razbiram.com session;
+  `git remote -v` printed it to that transcript, so treat it as disclosed). **Verified scope:**
+  `.git/config` only — no tracked file, not in history, **no rewrite needed**; sibling repos clean.
+  **Done:** remote is now token-free HTTPS (a global `gh` credential helper already existed).
+  **Owner:** revoke that PAT — it was already 403-ing on push, so nothing depends on it.
+- **BLOCKER — the 36 commits cannot be pushed.** The active `gh` account has `push: true` but
+  lacks the **`workflow`** scope, and the range touches `.github/workflows/ci.yml`. SSH is no
+  alternative (the local key is `HamudiLeon`, denied). **Fix:**
+  `gh auth refresh -h github.com -s workflow` → `git push origin main`. Until then this repo's
+  work exists on one disk — the same loss class flagged 2026-07-22 in razbiram.com, at 14 commits.
+- **Next:** after the push, M0 — 31 done / 11 open (P5.2b/c, P5.3, P5.6–P5.10, two decisions).
 
-### Reviewed baselines
+---
 
-All re-verified 2026-07-26; the first five are still their repo's HEAD.
-
-- screenshot-to-code: `6094fd710becd981fbcf29cfc32d7ebef921866d`
-- razbiram-nlp: `48b5beb`
-- razbiram-anki: `119bcea`
-- razbiram-listen: `6d190e2`
-- razbiram.com: `fd88f7c2`
-- studywithme_db: `553e857` (was `12f9381`; the newer commit adds an Anki processing
-  workflow and does not touch `app/studywithme-bg/learncards/`)
+Older entries: `docs/handoff-archive/`.
