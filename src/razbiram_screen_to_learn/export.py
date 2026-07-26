@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from razbiram_screen_to_learn.contracts import CaptureIR, Card
+from razbiram_screen_to_learn.contracts import EXPORTABLE_TIERS, CaptureIR, Card
 
 TARGET_PROFILE = "studywithme-bg.learncard.v1"
 
@@ -158,6 +158,20 @@ def _export_multiple_select(card: Card, sequence: int) -> tuple[dict | None, Blo
 def _export_card(
     card: Card, sequence: int, capabilities: set[str]
 ) -> tuple[dict | None, BlockedCard | None]:
+    # Correctness tier first, before any family logic. `validate_for_export` reports this too, but
+    # a caller that reads `export.deck` without inspecting the issues must not receive a card whose
+    # answer was never evidenced. Until the text path existed every card was `source-verified`, so
+    # nothing had yet exercised this route — the structural checks below merely happened to catch
+    # it. Defence belongs where the deck is actually built (BIBLE invariants 1 and 3).
+    if card.answerEvidenceTier is None:
+        return None, _block(card, "no answerEvidenceTier; an unevidenced answer cannot be exported")
+    if card.answerEvidenceTier not in EXPORTABLE_TIERS:
+        return None, _block(
+            card,
+            f"answerEvidenceTier {card.answerEvidenceTier!r} is not exportable; "
+            f"needs one of {sorted(EXPORTABLE_TIERS)}",
+        )
+
     required = REQUIRED_CAPABILITY.get(card.family)
     if required and required not in capabilities:
         if card.family == "multiple-select":
