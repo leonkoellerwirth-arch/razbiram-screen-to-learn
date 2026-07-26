@@ -65,7 +65,7 @@ flowchart TB
 
 ## Architecture package
 
-- [German product brief](docs/PRODUCT_BRIEF.de.md)
+- [German product brief](docs/product/PRODUCT_BRIEF.de.md)
 - [Feasibility assessment](docs/evaluation/FEASIBILITY.md)
 - [Solution architecture](docs/architecture/SOLUTION_ARCHITECTURE.md)
 - [Upstream reuse inventory](docs/architecture/UPSTREAM_REUSE.md)
