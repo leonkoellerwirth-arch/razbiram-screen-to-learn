@@ -14,7 +14,7 @@ from jsonschema import Draft202012Validator
 
 from razbiram_screen_to_learn import pipeline
 from razbiram_screen_to_learn.contracts import dump_document
-from razbiram_screen_to_learn.export import MCQ_MAX_OPTIONS, MCQ_MIN_OPTIONS
+from razbiram_screen_to_learn.export import MCQ_MIN_OPTIONS
 from razbiram_screen_to_learn.pipeline import LIVE_CAPABILITIES, process_markup
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -142,7 +142,7 @@ class TestLiveTargetRules:
             if card.get("sourceFormat") == "true-false":
                 assert len(card["options"]) == 2
             else:
-                assert MCQ_MIN_OPTIONS <= len(card["options"]) <= MCQ_MAX_OPTIONS
+                assert len(card["options"]) >= MCQ_MIN_OPTIONS
 
     def test_correct_answer_matches_an_option_text_exactly(self, markup: str) -> None:
         result = process_markup(markup, capabilities=EXTENDED)

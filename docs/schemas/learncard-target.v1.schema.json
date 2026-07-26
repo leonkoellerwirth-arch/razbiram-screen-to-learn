@@ -226,8 +226,7 @@
           },
           "options": {
             "type": "array",
-            "minItems": 3,
-            "maxItems": 5,
+            "minItems": 2,
             "items": {
               "$ref": "#/$defs/optionText"
             }
@@ -240,7 +239,7 @@
     },
     "mcqTrueFalse": {
       "title": "True/false \u2014 additive format",
-      "description": "A statement with exactly two options. It is tagged with sourceFormat so a parser never has to infer the case from the option count, and so the 3-5 option rule that governs a plain mcq can carve out this one shape explicitly rather than being relaxed for everything.",
+      "description": "A statement with exactly two options. It is tagged with sourceFormat so a parser never has to infer the case from the option count, and so a reader never has to infer the case from a count.",
       "if": {
         "properties": {
           "type": {
@@ -314,8 +313,7 @@
           },
           "options": {
             "type": "array",
-            "minItems": 3,
-            "maxItems": 5,
+            "minItems": 2,
             "items": {
               "$ref": "#/$defs/optionIdentified"
             }

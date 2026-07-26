@@ -21,7 +21,6 @@ from dataclasses import dataclass
 
 from razbiram_screen_to_learn.contracts import EXPORTABLE_TIERS, CaptureIR, Card
 from razbiram_screen_to_learn.export import (
-    MCQ_MAX_OPTIONS,
     MCQ_MIN_OPTIONS,
     REQUIRED_CAPABILITY,
     TARGET_PROFILE,
@@ -160,10 +159,10 @@ def _check_option_bounds(card: dict, options: list, where: str) -> list[str]:
         if len(options) != 2:
             return [f"{where}: a true/false card needs exactly 2 options, has {len(options)}"]
         return []
-    if not (MCQ_MIN_OPTIONS <= len(options) <= MCQ_MAX_OPTIONS):
+    if len(options) < MCQ_MIN_OPTIONS:
         return [
-            f"{where}: the target accepts {MCQ_MIN_OPTIONS}-{MCQ_MAX_OPTIONS} options per mcq "
-            f"card; this card has {len(options)}"
+            f"{where}: an mcq card needs at least {MCQ_MIN_OPTIONS} options; "
+            f"this card has {len(options)}"
         ]
     return []
 

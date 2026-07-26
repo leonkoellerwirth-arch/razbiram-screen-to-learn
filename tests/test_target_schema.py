@@ -73,17 +73,26 @@ def test_the_shipped_deck_still_conforms(validator: Draft202012Validator) -> Non
 class TestDiscriminatorsAreExplicit:
     """A parser must never have to infer the card shape from the option count."""
 
-    def test_true_false_needs_its_marker_to_be_allowed_two_options(
+    def test_a_true_false_card_holds_exactly_two_options(
         self, validator: Draft202012Validator
     ) -> None:
+        """The marker carries the shape, and it binds: two options, never three.
+
+        This test used to assert the reverse — that a two-option mcq *without* the marker is
+        rejected. That held only because a plain mcq needed three options, a bound copied from
+        `recall.deck.v1`'s validator, which never governed this target (see
+        `export.MCQ_MIN_OPTIONS`, 2026-07-27). A genuine two-option question is legitimate
+        material. What may still not happen is a true/false card carrying a third option.
+        """
         document = json.loads(
             (ROOT / "docs" / "schemas" / "true-false.compat.example.json").read_text(
                 encoding="utf-8"
             )
         )
-        document["cards"][0].pop("sourceFormat")
+        card = document["cards"][0]
+        card["options"] = [*card["options"], {"text": "Maybe", "isCorrect": False}]
         errors = _errors(validator, document)
-        assert errors, "a two-option mcq without sourceFormat must be rejected"
+        assert errors, "a true/false card with three options must be rejected"
 
     def test_multiple_select_needs_its_marker(self, validator: Draft202012Validator) -> None:
         document = json.loads(

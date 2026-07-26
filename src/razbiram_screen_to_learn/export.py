@@ -1,9 +1,11 @@
 """Capability-gated projection from Capture IR to the live target deck.
 
 The target is ``studywithme-bg.learncard.v1``, verified against the reference deck in
-``studywithme_db``. Every rule below was checked against the live razbiram.com validator
-(``app/src/lib/learncards/deckSchema.ts``) rather than taken from prose, because the documented
-contract and the shipped one diverge in two places that matter.
+``studywithme_db``. Every rule below is read from the code that actually accepts our decks —
+``app/src/lib/learncards/helpers.ts`` (``isLearnCardShape``) and the adapters behind it — never
+from prose. Note which validator that is *not*: ``deckSchema.ts`` governs ``recall.deck.v1``, a
+different contract for a different product, and reading a rule out of it once cost us legitimate
+cards (see ``MCQ_MIN_OPTIONS``).
 
 Nothing is ever degraded to fit. A card the target cannot represent losslessly is blocked and
 reported, per BIBLE invariant 5.
@@ -17,12 +19,16 @@ from razbiram_screen_to_learn.contracts import EXPORTABLE_TIERS, CaptureIR, Card
 
 TARGET_PROFILE = "studywithme-bg.learncard.v1"
 
-#: The target validator requires 3-5 options per mcq card (deckSchema.ts:200 at the pinned
-#: commit). A true/false card is the documented exception and carries `sourceFormat: "true-false"`
-#: with exactly two options; the razbiram.com change that accepts it is in progress, and this
-#: bound is not applied to that path.
-MCQ_MIN_OPTIONS = 3
-MCQ_MAX_OPTIONS = 5
+#: An mcq card needs at least two options; the target sets no upper bound.
+#:
+#: This was 3-5 until 2026-07-27, cited to `deckSchema.ts` in razbiram.com. That citation was to
+#: the wrong contract: `deckSchema.ts` validates `recall.deck.v1` and runs only on decks that
+#: declare `schema: "recall.deck.v1"` (its `declaresDeckV1` tripwire). A deck of ours declares
+#: `studywithme-bg.learncard.v1`, which the product accepts through `helpers.ts:isLearnCardShape` —
+#: no option-count rule there at all, and its adapters require two. The old bound therefore refused
+#: legitimate material: a real six-option exam question was blocked by a rule that never governed
+#: it. A true/false card keeps exactly two options, which its own branch enforces.
+MCQ_MIN_OPTIONS = 2
 
 #: Capability identifiers a target must declare before the matching family may be exported.
 REQUIRED_CAPABILITY = {
@@ -58,11 +64,10 @@ def _block(card: Card, reason: str) -> BlockedCard:
 
 def _export_single_choice(card: Card, sequence: int) -> tuple[dict | None, BlockedCard | None]:
     options = card.options or []
-    if not (MCQ_MIN_OPTIONS <= len(options) <= MCQ_MAX_OPTIONS):
+    if len(options) < MCQ_MIN_OPTIONS:
         return None, _block(
             card,
-            f"the target accepts {MCQ_MIN_OPTIONS}-{MCQ_MAX_OPTIONS} options per mcq card; "
-            f"this card has {len(options)}",
+            f"an mcq card needs at least {MCQ_MIN_OPTIONS} options; this card has {len(options)}",
         )
     correct = [option for option in options if option.isCorrect]
     if len(correct) != 1:
@@ -129,11 +134,10 @@ def _export_multiple_select(card: Card, sequence: int) -> tuple[dict | None, Blo
     has actually adopted it — never an assumption made here.
     """
     options = card.options or []
-    if not (MCQ_MIN_OPTIONS <= len(options) <= MCQ_MAX_OPTIONS):
+    if len(options) < MCQ_MIN_OPTIONS:
         return None, _block(
             card,
-            f"the target accepts {MCQ_MIN_OPTIONS}-{MCQ_MAX_OPTIONS} options per mcq card; "
-            f"this card has {len(options)}",
+            f"an mcq card needs at least {MCQ_MIN_OPTIONS} options; this card has {len(options)}",
         )
     correct = [option.optionId for option in options if option.isCorrect]
     if not correct:
@@ -181,9 +185,8 @@ def _export_card(
             )
         else:
             reason = (
-                f"target does not declare {required}; the live validator requires "
-                f"{MCQ_MIN_OPTIONS}-{MCQ_MAX_OPTIONS} mcq options and has no true/false exception, "
-                "so a two-option card would be rejected"
+                f"target does not declare {required}; without it a two-option card carries no "
+                "signal that its two options are a statement's truth values"
             )
         return None, _block(card, reason)
 
