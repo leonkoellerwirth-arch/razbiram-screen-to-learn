@@ -209,8 +209,17 @@ slice when its phase starts, against the then-repaired contracts.
 - [x] **P5.1** Repo skeleton: `pyproject.toml`, `src/razbiram_screen_to_learn/`, `tests/`, ruff +
       pytest. Gate must stay green from the first commit — it activates the Python checks
       automatically.
-- [x] **P5.2** `contracts/`: Pydantic 2 models for `ingest-envelope.v1`, `capture-ir.v1`,
-      `extension-capture.v1`, plus schema-generation and the P3.3 cross-field validators.
+- [x] **P5.2a** `capture-ir.v1` Pydantic models and all eight P3.3 cross-field validators, with
+      the export capability gate. Round-trip test asserts the models and the committed schema agree.
+- [ ] **P5.2b** Pydantic models for `ingest-envelope.v1`, `extension-capture.v1` and
+      `semantic-snapshot.v1`.
+- [ ] **P5.2c** Decide the schema-generation direction. `REPOSITORY_BLUEPRINT.md` says Pydantic
+      generates the schemas and `QUALITY_AND_CI.md:26` gates on "generated schemas match committed
+      schemas" — but the committed schemas are hand-written, and a generated schema never
+      reproduces a hand-written one byte for byte ($defs naming, keyword order, `unevaluatedProperties`
+      composition). P5.2a treats the committed schema as the wire contract and the models as a
+      typed view, asserting *agreement* on the shared example instead. Either ratify that and
+      reword the CI gate, or commit to generating the schemas and regenerate them all.
 - [ ] **P5.3** `ingest/`: screenshot, text, and PDF adapters into one envelope; the three fixtures
       from `FEASIBILITY.md` criterion 3.
 - [x] **P5.4** Identity module implementing P1.6 exactly, with determinism tests that hash the same
