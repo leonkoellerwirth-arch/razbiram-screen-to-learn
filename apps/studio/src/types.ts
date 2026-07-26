@@ -110,6 +110,8 @@ export interface BlockedCard {
   cardId: string;
   family: string;
   reason: string;
+  /** The same card's id inside `ProcessExport.draft`, which numbers by position. */
+  draftCardId: string | null;
 }
 
 export interface ExportDeck {
@@ -122,6 +124,15 @@ export interface ExportDeck {
  *  with the JS `export` keyword when used as a property or local binding. */
 export interface ProcessExport {
   deck: ExportDeck | null;
+  /**
+   * Every card the target could hold, blocked ones included, with what the extractor could not
+   * evidence left empty. Present so the studio can show a person what was recognised even when
+   * nothing is exportable. It is a draft, never an export: /v1/deck/check decides that.
+   * `null` when no card in the document has a shape the target could ever take.
+   */
+  draft: ExportDeck | null;
+  /** What the run's target declares — passed back to /v1/deck/check, never invented client-side. */
+  capabilities: string[];
   blockedCardIds: string[];
   blocked: BlockedCard[];
 }

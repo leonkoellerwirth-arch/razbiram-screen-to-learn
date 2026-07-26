@@ -3,13 +3,13 @@
 // Shell adapted from razbiram-anki/src/App.tsx: same NodeMark, same theme
 // hook, same drop zone pattern, same panel structure.  The middle layer
 // (browser-side Anki conversion) is replaced by a POST to /v1/process.
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { processFileStreaming } from "./api";
 import type { StageEvent } from "./api";
-import type { ProcessResponse, ProcessExport } from "./types";
+import type { ProcessResponse } from "./types";
 import { CardList } from "./CardList";
 import { IssueList } from "./IssueList";
-import DeckJsonViewer from "./DeckJsonViewer";
+import ExportPanel from "./ExportPanel";
 import ProgressPanel from "./ProgressPanel";
 
 // ---------------------------------------------------------------------------
@@ -74,15 +74,6 @@ function humanSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function downloadText(json: string, filename: string): void {
-  const blob = new Blob([json], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
-}
 
 /**
  * What the studio takes in. Images go through OCR on the server; .html/.txt are read directly.
@@ -102,140 +93,6 @@ type Status =
   | { phase: "working"; since: number; uploaded: number | null; stage: StageEvent | null }
   | { phase: "done"; result: ProcessResponse }
   | { phase: "error"; message: string };
-
-// ---------------------------------------------------------------------------
-// Export panel
-// ---------------------------------------------------------------------------
-
-function ExportPanel({ exportInfo, deckTitle }: { exportInfo: ProcessExport; deckTitle: string }) {
-  const [showJson, setShowJson] = useState(false);
-  const [copied, setCopied] = useState(false);
-
-  const exportJson = useMemo(
-    () => (exportInfo.deck ? JSON.stringify(exportInfo.deck, null, 2) : ""),
-    [exportInfo.deck],
-  );
-
-  // The edited buffer. A person may correct a card here before taking the file away, so copy and
-  // download must both read THIS, never the pristine extraction.
-  const [draft, setDraft] = useState(exportJson);
-  useEffect(() => setDraft(exportJson), [exportJson]);
-
-  const draftIsValid = useMemo(() => {
-    if (!draft.trim()) return false;
-    try {
-      JSON.parse(draft);
-      return true;
-    } catch {
-      return false;
-    }
-  }, [draft]);
-
-  const onCopy = useCallback(() => {
-    if (!draft) return;
-    navigator.clipboard.writeText(draft).then(() => {
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 1500);
-    });
-  }, [draft]);
-
-  const onDownload = useCallback(() => {
-    // Downloading invalid JSON would hand over a file the target cannot read.
-    if (!draftIsValid) return;
-    downloadText(draft, `${deckTitle || "export"}.json`);
-  }, [draft, draftIsValid, deckTitle]);
-
-  return (
-    <section style={{ marginTop: 20 }}>
-      <h2 style={{ fontSize: 20, margin: "0 0 10px", letterSpacing: "-0.01em" }}>
-        Export
-      </h2>
-
-      {exportInfo.deck === null ? (
-        // All cards were blocked — no deck to export
-        <div
-          className="rz-card"
-          style={{ borderColor: "var(--danger)", background: "var(--danger-soft)" }}
-        >
-          <div style={{ fontWeight: 700, color: "var(--danger)", marginBottom: 8 }}>
-            Export blocked — every card was excluded
-          </div>
-          <div className="rz-muted" style={{ fontSize: 14, marginBottom: exportInfo.blocked.length > 0 ? 12 : 0 }}>
-            Fix the blocking issues and re-process the file to get an exportable deck.
-          </div>
-          {exportInfo.blocked.length > 0 && (
-            <ul style={{ margin: 0, padding: "0 0 0 18px", display: "grid", gap: 4 }}>
-              {exportInfo.blocked.map((b) => (
-                <li key={b.cardId} style={{ fontSize: 13, color: "var(--danger)" }}>
-                  <code className="rz-faint">{b.cardId}</code>
-                  {" — "}
-                  {b.reason}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      ) : (
-        // Deck is exportable (may be partial if some cards were blocked)
-        <div className="rz-card">
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
-            <span className="rz-chip">{exportInfo.deck.schemaId}</span>
-            {typeof exportInfo.deck.meta.cardCount === "number" && (
-              <span className="rz-chip">
-                <span className="rz-numeral">{exportInfo.deck.meta.cardCount}</span>
-                {" "}card{exportInfo.deck.meta.cardCount !== 1 ? "s" : ""}
-              </span>
-            )}
-            {exportInfo.blockedCardIds.length > 0 && (
-              <span
-                className="rz-chip"
-                style={{ color: "var(--warn)", borderColor: "var(--warn)" }}
-              >
-                {exportInfo.blockedCardIds.length} card{exportInfo.blockedCardIds.length !== 1 ? "s" : ""} excluded
-              </span>
-            )}
-          </div>
-
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 14 }}>
-            <button
-              className="rz-btn rz-btn-primary"
-              onClick={onDownload}
-              disabled={!draftIsValid}
-              title={draftIsValid ? undefined : "The edited JSON does not parse yet."}
-              style={{ minHeight: 44 }}
-            >
-              Download export JSON
-            </button>
-            <button
-              className="rz-btn"
-              onClick={() => setShowJson((v) => !v)}
-              aria-expanded={showJson}
-              style={{ minHeight: 44 }}
-            >
-              {showJson ? "Hide JSON" : "Preview JSON"}
-            </button>
-            {showJson && (
-              <button className="rz-btn" onClick={onCopy} style={{ minHeight: 44 }}>
-                {copied ? "Copied ✓" : "Copy"}
-              </button>
-            )}
-          </div>
-
-          {showJson && (
-            <div style={{ marginTop: 14 }}>
-              <DeckJsonViewer value={draft} onChange={setDraft} invalid={!draftIsValid} />
-              <p style={{ margin: "8px 2px 0", fontSize: 12, opacity: 0.75 }}>
-                {draftIsValid
-                  ? "Edit freely — Copy and Download take what you see here."
-                  : "This is not valid JSON yet, so Download is disabled."}
-              </p>
-            </div>
-          )}
-        </div>
-      )}
-    </section>
-  );
-}
 
 // ---------------------------------------------------------------------------
 // Unsupported section

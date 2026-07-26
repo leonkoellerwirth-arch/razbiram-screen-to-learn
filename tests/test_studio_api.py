@@ -67,6 +67,46 @@ def test_unsupported_families_are_surfaced_not_dropped(client: TestClient) -> No
     assert "q-image-occlusion" in body["unsupported"]
 
 
+def test_the_response_carries_a_draft_and_the_targets_capabilities(client: TestClient) -> None:
+    """The studio cannot show what was recognised, or judge an edit, without these two.
+
+    They are unconditional for the same reason `blocked` is: a client written against a response
+    that only sometimes carries them is a client that silently drops the panel later.
+    """
+    body = _upload(client).json()
+    assert body["export"]["draft"]["cards"]
+    assert body["export"]["capabilities"]
+
+
+def test_an_edited_deck_is_judged_by_the_same_rules_as_the_export(client: TestClient) -> None:
+    body = _upload(client).json()
+    deck = body["export"]["deck"]
+    capabilities = body["export"]["capabilities"]
+
+    passed = client.post("/v1/deck/check", json={"deck": deck, "capabilities": capabilities}).json()
+    assert passed == {"ok": True, "errors": []}
+
+    deck["cards"][0]["correctAnswer"] = "an answer nobody offered"
+    failed = client.post("/v1/deck/check", json={"deck": deck, "capabilities": capabilities}).json()
+    assert failed["ok"] is False
+    assert any("correctAnswer" in error for error in failed["errors"])
+
+
+def test_a_draft_nobody_has_fixed_yet_is_refused(client: TestClient) -> None:
+    """The gate — invariant 3. An unfixed draft carries no evidenced answer and may not leave."""
+    body = client.post(
+        "/v1/process",
+        files={"file": ("q.txt", b"1. Which clause?\nA) 6.3\nB) 7.2\nC) 10.2\n", "text/plain")},
+    ).json()
+    assert body["export"]["deck"] is None
+
+    verdict = client.post(
+        "/v1/deck/check",
+        json={"deck": body["export"]["draft"], "capabilities": body["export"]["capabilities"]},
+    ).json()
+    assert verdict["ok"] is False
+
+
 def test_unsupported_file_type_is_rejected(client: TestClient) -> None:
     response = _upload(client, name="deck.pdf", body=b"%PDF-1.7")
     assert response.status_code == 400

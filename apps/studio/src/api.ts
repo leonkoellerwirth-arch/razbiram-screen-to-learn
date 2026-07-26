@@ -105,6 +105,27 @@ export function processFileStreaming(
   });
 }
 
+export interface DeckCheck {
+  ok: boolean;
+  errors: string[];
+}
+
+/**
+ * POST /v1/deck/check — does this (possibly hand-edited) deck satisfy the target's rules?
+ *
+ * The rules live in Python next to the export path, never here: a second copy in the browser is a
+ * second thing to keep true, and this is the gate that decides whether a file may leave.
+ */
+export async function checkDeck(deck: unknown, capabilities: string[]): Promise<DeckCheck> {
+  const res = await fetch("/v1/deck/check", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ deck, capabilities }),
+  });
+  if (!res.ok) throw new Error(`Deck check failed: ${res.status}`);
+  return res.json() as Promise<DeckCheck>;
+}
+
 /** GET /health — used to verify the backend is reachable before upload. */
 export async function checkHealth(): Promise<{ status: string; version: string }> {
   const res = await fetch("/health");

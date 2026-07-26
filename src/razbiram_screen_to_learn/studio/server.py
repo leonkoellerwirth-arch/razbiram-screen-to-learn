@@ -21,9 +21,11 @@ from queue import Queue
 from fastapi import FastAPI, HTTPException, UploadFile
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
 
 from razbiram_screen_to_learn import __version__
 from razbiram_screen_to_learn.contracts import dump_document
+from razbiram_screen_to_learn.draft import check_deck, draft_deck
 from razbiram_screen_to_learn.ocr import IMAGE_SUFFIXES, OcrUnavailable
 from razbiram_screen_to_learn.pipeline import (
     PipelineResult,
@@ -124,6 +126,7 @@ def _run_pipeline(
 
 
 def _payload(result: PipelineResult) -> dict:
+    draft = draft_deck(result.document)
     return {
         "captureIr": dump_document(result.document),
         "issues": [
@@ -137,14 +140,37 @@ def _payload(result: PipelineResult) -> dict:
         ],
         "export": {
             "deck": result.export.deck,
+            # Every card the target could hold at all, blocked ones included, with the unevidenced
+            # parts left empty. The studio shows this so a person can see what was recognised and
+            # fix it; `check_deck` — not the UI — decides when the result may be exported.
+            "draft": draft.deck,
+            "capabilities": list(result.document.target.capabilities),
             "blockedCardIds": result.export.blocked_card_ids,
             "blocked": [
-                {"cardId": b.card_id, "family": b.family, "reason": b.reason}
+                {
+                    "cardId": b.card_id,
+                    "family": b.family,
+                    "reason": b.reason,
+                    # Where to find this card in the draft — the draft numbers by position.
+                    "draftCardId": draft.card_ids.get(b.card_id),
+                }
                 for b in result.export.blocked
             ],
         },
         "unsupported": result.unsupported,
     }
+
+
+class DeckCheckRequest(BaseModel):
+    """A hand-edited deck on its way back for judgement.
+
+    ``deck`` is deliberately untyped: it is whatever a person left in the editor, and saying why it
+    is wrong is the whole point of the endpoint. ``capabilities`` comes from the same run's
+    ``captureIr.target`` — the client never invents one.
+    """
+
+    deck: object
+    capabilities: list[str] = []
 
 
 async def _stream_pipeline(filename: str, raw: bytes) -> AsyncIterator[str]:
@@ -190,6 +216,16 @@ def create_app() -> FastAPI:
     @app.post("/v1/process")
     async def process(file: UploadFile) -> dict:
         return _payload(_run_pipeline(file.filename or "", await file.read()))
+
+    @app.post("/v1/deck/check")
+    def check(request: DeckCheckRequest) -> dict:
+        """Judge an edited deck against the target's rules — the release gate, invariant 3.
+
+        The same rules the export path enforces, applied to JSON that no longer has a Capture IR
+        behind it. The studio asks before it lets anyone download.
+        """
+        errors = check_deck(request.deck, capabilities=set(request.capabilities))
+        return {"ok": not errors, "errors": errors}
 
     @app.post("/v1/process/stream")
     async def process_stream(file: UploadFile) -> StreamingResponse:

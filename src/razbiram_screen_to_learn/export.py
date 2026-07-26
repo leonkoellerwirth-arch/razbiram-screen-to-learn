@@ -223,33 +223,44 @@ def export_deck(
     if not cards:
         return ExportResult(deck=None, blocked=blocked)
 
-    deck = document.deck
     return ExportResult(
-        deck={
-            "schemaId": TARGET_PROFILE,
-            "deckKey": deck.deckKey,
-            "bookKey": deck.bookKey,
-            "meta": {
-                "title": _localized(deck.title),
-                "description": _localized(deck.description),
-                "level": deck.level,
-                "tags": list(deck.tags),
-                "difficulty": deck.difficulty,
-                # Written explicitly even though the loader can derive them.
-                "estimatedMinutes": (
-                    estimated_minutes if estimated_minutes is not None else len(cards)
-                ),
-                "cardCount": len(cards),
-                "languages": dict(deck.languages),
-                "source": {
-                    "kind": document.source.kind,
-                    "rightsBasis": _rights_basis(document),
-                },
-            },
-            "cards": cards,
-        },
+        deck=deck_envelope(document, cards, estimated_minutes=estimated_minutes),
         blocked=blocked,
     )
+
+
+def deck_envelope(
+    document: CaptureIR, cards: list[dict], *, estimated_minutes: int | None = None
+) -> dict:
+    """Wrap already-projected cards in the target deck envelope.
+
+    Shared with ``draft.py`` so the export and the draft a person edits differ in their cards and
+    in nothing else — a draft that reaches export must not arrive with different metadata.
+    """
+    deck = document.deck
+    return {
+        "schemaId": TARGET_PROFILE,
+        "deckKey": deck.deckKey,
+        "bookKey": deck.bookKey,
+        "meta": {
+            "title": _localized(deck.title),
+            "description": _localized(deck.description),
+            "level": deck.level,
+            "tags": list(deck.tags),
+            "difficulty": deck.difficulty,
+            # Written explicitly even though the loader can derive them.
+            "estimatedMinutes": (
+                estimated_minutes if estimated_minutes is not None else len(cards)
+            ),
+            "cardCount": len(cards),
+            "languages": dict(deck.languages),
+            "source": {
+                "kind": document.source.kind,
+                "rightsBasis": _rights_basis(document),
+            },
+        },
+        "cards": cards,
+    }
 
 
 def _rights_basis(document: CaptureIR) -> str:
