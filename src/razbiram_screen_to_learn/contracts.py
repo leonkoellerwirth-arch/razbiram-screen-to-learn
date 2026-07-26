@@ -174,3 +174,20 @@ class CaptureIR(_Frozen):
     deck: Deck
     evidence: list[Evidence] = Field(default_factory=list)
     cards: list[Card] = Field(default_factory=list)
+
+
+def dump_document(document: CaptureIR) -> dict:
+    """Serialize to the exact JSON shape the committed schema expects.
+
+    ``exclude_none`` is wrong here and ``exclude_unset`` alone is not enough. Several fields are
+    *required but nullable* (``review.reviewedBy``, ``review.reviewedAt``, ``rights.licenseNotes``)
+    and must be emitted as ``null``, while the family-specific fields must be absent rather than
+    ``null`` on families that do not use them. ``exclude_unset`` gets both right, since an
+    explicitly-passed ``None`` counts as set — it only drops ``schemaVersion``, which carries a
+    default and is therefore restored here.
+
+    Every producer goes through this function so the API, the CLI and the tests cannot drift.
+    """
+    payload = document.model_dump(mode="json", exclude_unset=True)
+    payload["schemaVersion"] = document.schemaVersion
+    return payload
