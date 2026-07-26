@@ -1,0 +1,438 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://razbiram.com/schemas/learncard-target.v1.schema.json",
+  "title": "studywithme-bg.learncard.v1 \u2014 deck format as screen-to-learn emits it",
+  "description": "The integration boundary between razbiram-screen-to-learn and razbiram.com is this file and nothing else: the product does not implement, import or know about screen-to-learn. It only has to parse the deck JSON described here. Cards of type `mcq` come in three shapes distinguished by explicit discriminators rather than by guessing from the option count: plain single-answer, `sourceFormat: \"true-false\"`, and `selectionMode: \"multiple\"`. The first is what ships today; the other two are the additive formats the engine is taking on. Nothing here removes or changes an existing field.",
+  "type": "object",
+  "required": [
+    "schemaId",
+    "deckKey",
+    "meta",
+    "cards"
+  ],
+  "properties": {
+    "schemaId": {
+      "const": "studywithme-bg.learncard.v1"
+    },
+    "deckKey": {
+      "type": "string",
+      "minLength": 1
+    },
+    "bookKey": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "meta": {
+      "$ref": "#/$defs/meta"
+    },
+    "cards": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/card"
+      }
+    }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "localized": {
+      "type": "object",
+      "description": "Language code to text. `en` is present in every deck produced today.",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "meta": {
+      "type": "object",
+      "required": [
+        "title",
+        "description",
+        "cardCount",
+        "languages"
+      ],
+      "properties": {
+        "title": {
+          "$ref": "#/$defs/localized"
+        },
+        "description": {
+          "$ref": "#/$defs/localized"
+        },
+        "level": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "difficulty": {
+          "type": "string"
+        },
+        "estimatedMinutes": {
+          "type": "number",
+          "minimum": 0
+        },
+        "cardCount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Written explicitly even though a loader can derive it; must equal cards.length."
+        },
+        "languages": {
+          "type": "object",
+          "required": [
+            "source",
+            "target"
+          ],
+          "properties": {
+            "source": {
+              "type": "string"
+            },
+            "target": {
+              "type": "string"
+            }
+          }
+        },
+        "source": {
+          "type": "object",
+          "description": "Provenance. Shipped decks converted from Anki carry {file, book, originalDeckName}; decks produced by screen-to-learn carry {kind, rightsBasis}. A parser must accept both and treat the object as open.",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "optionText": {
+      "type": "object",
+      "required": [
+        "text",
+        "isCorrect"
+      ],
+      "properties": {
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "isCorrect": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": true
+    },
+    "optionIdentified": {
+      "type": "object",
+      "required": [
+        "optionId",
+        "text",
+        "isCorrect"
+      ],
+      "properties": {
+        "optionId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Stable per-option identity. Required for multiple-select so scoring can name options without relying on their display text or position."
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "isCorrect": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": true
+    },
+    "card": {
+      "type": "object",
+      "required": [
+        "cardId",
+        "type"
+      ],
+      "properties": {
+        "cardId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sourceId": {
+          "type": "string",
+          "description": "Stable cross-export identity. cardId is a per-deck sequential label; sourceId is what survives re-export, so progress should be keyed on it."
+        },
+        "type": {
+          "enum": [
+            "mcq",
+            "matching",
+            "typed",
+            "flashcard",
+            "image-occlusion"
+          ]
+        },
+        "question": {
+          "$ref": "#/$defs/localized"
+        },
+        "explanation": {
+          "$ref": "#/$defs/localizedOrString"
+        },
+        "hint": {
+          "$ref": "#/$defs/localizedOrString"
+        }
+      },
+      "allOf": [
+        {
+          "$ref": "#/$defs/mcqSingle"
+        },
+        {
+          "$ref": "#/$defs/mcqTrueFalse"
+        },
+        {
+          "$ref": "#/$defs/mcqMultipleSelect"
+        },
+        {
+          "$ref": "#/$defs/flashcard"
+        },
+        {
+          "$ref": "#/$defs/typed"
+        }
+      ],
+      "additionalProperties": true
+    },
+    "mcqSingle": {
+      "title": "Single-answer MCQ \u2014 the format that ships today",
+      "if": {
+        "properties": {
+          "type": {
+            "const": "mcq"
+          },
+          "selectionMode": false,
+          "sourceFormat": false
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "required": [
+          "question",
+          "correctAnswer",
+          "options"
+        ],
+        "properties": {
+          "correctAnswer": {
+            "type": "string",
+            "description": "Must equal the text of the one option whose isCorrect is true."
+          },
+          "options": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 5,
+            "items": {
+              "$ref": "#/$defs/optionText"
+            }
+          },
+          "scoring": {
+            "$ref": "#/$defs/scoringSingle"
+          }
+        }
+      }
+    },
+    "mcqTrueFalse": {
+      "title": "True/false \u2014 additive format",
+      "description": "A statement with exactly two options. It is tagged with sourceFormat so a parser never has to infer the case from the option count, and so the 3-5 option rule that governs a plain mcq can carve out this one shape explicitly rather than being relaxed for everything.",
+      "if": {
+        "properties": {
+          "type": {
+            "const": "mcq"
+          },
+          "sourceFormat": {
+            "const": "true-false"
+          }
+        },
+        "required": [
+          "type",
+          "sourceFormat"
+        ]
+      },
+      "then": {
+        "required": [
+          "question",
+          "correctAnswer",
+          "options"
+        ],
+        "properties": {
+          "sourceFormat": {
+            "const": "true-false"
+          },
+          "correctAnswer": {
+            "type": "string",
+            "minLength": 1
+          },
+          "options": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {
+              "$ref": "#/$defs/optionText"
+            },
+            "description": "Exactly two, in true-then-false order. The labels are the source's own wording, so a deck captured in another language keeps its own terms."
+          },
+          "scoring": {
+            "$ref": "#/$defs/scoringSingle"
+          }
+        }
+      }
+    },
+    "mcqMultipleSelect": {
+      "title": "Multiple-select \u2014 additive format",
+      "description": "More than one option may be correct. correctOptionIds is the authoritative answer set and must equal the set of options flagged isCorrect; a renderer must never collapse it to a single answer, and the answer set must never be encoded as one joined string.",
+      "if": {
+        "properties": {
+          "type": {
+            "const": "mcq"
+          },
+          "selectionMode": {
+            "const": "multiple"
+          }
+        },
+        "required": [
+          "type",
+          "selectionMode"
+        ]
+      },
+      "then": {
+        "required": [
+          "question",
+          "options",
+          "correctOptionIds",
+          "scoring"
+        ],
+        "properties": {
+          "selectionMode": {
+            "const": "multiple"
+          },
+          "options": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 5,
+            "items": {
+              "$ref": "#/$defs/optionIdentified"
+            }
+          },
+          "correctOptionIds": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "scoring": {
+            "type": "object",
+            "required": [
+              "mode",
+              "points"
+            ],
+            "properties": {
+              "mode": {
+                "enum": [
+                  "all-or-nothing",
+                  "partial-credit"
+                ]
+              },
+              "points": {
+                "type": "number"
+              }
+            },
+            "additionalProperties": true
+          }
+        }
+      }
+    },
+    "flashcard": {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "flashcard"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "required": [
+          "front",
+          "back"
+        ],
+        "properties": {
+          "front": {
+            "$ref": "#/$defs/localized"
+          },
+          "back": {
+            "$ref": "#/$defs/localized"
+          }
+        }
+      }
+    },
+    "typed": {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "typed"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "required": [
+          "acceptableAnswers"
+        ],
+        "properties": {
+          "acceptableAnswers": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "requiredKeywords": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "scoringSingle": {
+      "type": "object",
+      "required": [
+        "mode",
+        "points"
+      ],
+      "properties": {
+        "mode": {
+          "const": "single-best-answer"
+        },
+        "points": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": true
+    },
+    "localizedOrString": {
+      "description": "The product's LearnCard type declares `LocalizedText | string` for these, and shipped decks use the plain-string form. A parser must accept both.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/localized"
+        },
+        {
+          "type": "string"
+        }
+      ]
+    }
+  }
+}

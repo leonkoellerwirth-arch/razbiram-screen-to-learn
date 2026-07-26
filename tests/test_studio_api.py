@@ -38,11 +38,8 @@ def test_process_returns_the_full_result(client: TestClient) -> None:
     body = _upload(client).json()
     assert body["captureIr"]["schemaVersion"] == "capture-ir.v1"
     assert len(body["captureIr"]["cards"]) == 4
-    # Three of the four export; multiple-select stays blocked until its platform change exists.
-    assert body["export"]["deck"]["meta"]["cardCount"] == 3
-    assert set(body["export"]["blockedCardIds"]) == {
-        card["cardId"] for card in body["captureIr"]["cards"] if card["family"] == "multiple-select"
-    }
+    assert body["export"]["deck"]["meta"]["cardCount"] == 4
+    assert body["export"]["blockedCardIds"] == []
 
 
 def test_api_and_cli_agree(client: TestClient) -> None:
@@ -52,12 +49,17 @@ def test_api_and_cli_agree(client: TestClient) -> None:
     assert body["captureIr"] == dump_document(direct.document)
 
 
-def test_blocked_cards_are_reported_with_a_reason(client: TestClient) -> None:
+def test_the_response_always_carries_the_block_channel(client: TestClient) -> None:
+    """Nothing is blocked for the default target; the channel must still be present and typed.
+
+    A client that only saw `blocked` when it was non-empty would be easy to write against by
+    accident and would then silently skip the reason panel the day a card is blocked. The
+    reason-carrying guarantee itself is asserted in test_pipeline, where a capability can be
+    withheld.
+    """
     body = _upload(client).json()
-    assert body["export"]["blocked"]
-    for blocked in body["export"]["blocked"]:
-        assert blocked["reason"], "a blocked card without a reason is unreviewable"
-        assert blocked["cardId"] and blocked["family"]
+    assert body["export"]["blocked"] == []
+    assert body["export"]["blockedCardIds"] == []
 
 
 def test_unsupported_families_are_surfaced_not_dropped(client: TestClient) -> None:

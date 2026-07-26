@@ -73,12 +73,19 @@ class TestExtraction:
 
 
 class TestCapabilityGate:
-    def test_live_target_blocks_only_multiple_select(self, markup: str) -> None:
-        """True/false is now declared; multiple-select still is not (BIBLE invariant 5)."""
+    def test_target_profile_carries_every_supported_family(self, markup: str) -> None:
+        """Both additive formats are declared, so nothing extractable is blocked."""
         result = process_markup(markup, capabilities=LIVE_CAPABILITIES)
-        assert {b.family for b in result.export.blocked} == {"multiple-select"}
+        assert result.export.blocked == []
         assert result.export.deck is not None
-        assert result.export.deck["meta"]["cardCount"] == 3
+        assert result.export.deck["meta"]["cardCount"] == 4
+
+    def test_removing_a_capability_blocks_rather_than_degrades(self, markup: str) -> None:
+        """The gate is what keeps a lossy deck from ever reaching a target that cannot read it."""
+        without = set(LIVE_CAPABILITIES) - {"mcq.multiple-select.v1"}
+        result = process_markup(markup, capabilities=without)
+        assert {b.family for b in result.export.blocked} == {"multiple-select"}
+        assert all(c.get("selectionMode") is None for c in result.export.deck["cards"])
 
     def test_true_false_exports_with_its_source_format(self, markup: str) -> None:
         result = process_markup(markup, capabilities=LIVE_CAPABILITIES)
@@ -100,8 +107,17 @@ class TestCapabilityGate:
         assert len(card["correctOptionIds"]) > 1
         assert sum(1 for o in card["options"] if o["isCorrect"]) == len(card["correctOptionIds"])
 
+    def test_a_blocked_card_always_carries_a_reason(self, markup: str) -> None:
+        """A block without a reason is unreviewable — the human cannot act on it."""
+        without = set(LIVE_CAPABILITIES) - {"mcq.multiple-select.v1"}
+        result = process_markup(markup, capabilities=without)
+        assert result.export.blocked
+        for blocked in result.export.blocked:
+            assert blocked.reason and blocked.card_id and blocked.family
+
     def test_blocked_cards_never_reach_the_deck(self, markup: str) -> None:
-        result = process_markup(markup, capabilities=LIVE_CAPABILITIES)
+        without = set(LIVE_CAPABILITIES) - {"mcq.multiple-select.v1"}
+        result = process_markup(markup, capabilities=without)
         exported_sources = {card["sourceId"] for card in result.export.deck["cards"]}
         blocked_ids = set(result.export.blocked_card_ids)
         for card in result.document.cards:

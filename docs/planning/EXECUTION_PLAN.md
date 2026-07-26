@@ -209,11 +209,15 @@ built to the current text would emit files the runtime cannot read.
       confirm it against what razbiram.com actually ships, together with the option-count
       exception. Until then the export is correct by construction but unverified end to end
       against the live product. See P4.8.
-- [ ] **P4.8 — Verify the two-option export against the shipped razbiram.com change.** Re-read
-      `deckSchema.ts` once the change lands: confirm the capability identifier, confirm the
-      option-count exception accepts a two-option card with `sourceFormat: "true-false"`, and run
-      a real deck through the product's own validator. Update `LIVE_CAPABILITIES` and the pinned
-      commit in `HANDOFF.md` if either differs.
+- [x] **P4.8 — Specify the two additive deck formats for the engine.** razbiram.com does not
+      integrate screen-to-learn; it only parses deck JSON. Both formats are now specified in
+      `docs/schemas/learncard-target.v1.schema.json` with a generated reference example covering
+      all three mcq shapes plus flashcard. Verified in both directions: the schema accepts the
+      committed examples, our real export, and the shipped 33-card deck.
+- [ ] **P4.9 — Confirm the capability identifiers with the hub.** `mcq.two-option.v1` and
+      `mcq.multiple-select.v1` are provisional names chosen here; the family-owned identifiers are
+      still an open BIBLE decision. Rename in `pipeline.LIVE_CAPABILITIES` and
+      `export.REQUIRED_CAPABILITY` once decided — the formats themselves do not change.
 - [x] **P5.12 — Studio UI adopted from razbiram-anki.** React 19 + Vite under `apps/studio`, the
       donor's `styles.css`, class names, NodeMark and theme handling kept; only the middle
       replaced (POST to the loopback API instead of in-browser Anki conversion). Tailwind 4 via
