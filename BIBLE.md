@@ -80,7 +80,8 @@ backend.
 - **2026-07-25 — razbiram-anki integration.** Adopt a reviewed-deck handoff to razbiram-anki for
   Anki/CrowdAnki outputs. Do not make CrowdAnki or current razbiram-anki app internals the Capture
   IR or universal ecosystem contract.
-- **2026-07-26 — The integration boundary is the deck JSON, nothing else.** razbiram.com does not
+- **2026-07-26 — The integration boundary is the deck JSON, nothing else.** _(PARTIALLY SUPERSEDED
+  the same day — see the amendment directly below.)_ razbiram.com does not
   implement, import or know about screen-to-learn; it only has to parse new card formats. Both
   additive formats are therefore specified as a schema the engine can implement against —
   `docs/schemas/learncard-target.v1.schema.json`, with a generated reference example: true/false
@@ -88,7 +89,25 @@ backend.
   `selectionMode: "multiple"` with `correctOptionIds` and per-option ids. Both are tagged with an
   explicit discriminator so a parser never infers the shape from the option count. The schema
   accepts the shipped 33-card deck unchanged, so the additions break no existing content. The
-  capability identifiers remain provisional pending the family-owned names.
+  capability identifiers are settled: `mcq.true-false` and `mcq.multiple-select.v1`, as razbiram.com
+  publishes them in its capability profile.
+- **2026-07-26 (amendment, owner decision) — razbiram.com gets its OWN capture plugin; this repo
+  is no longer the only intake.** Amends the boundary decision above. razbiram.com is building a
+  standalone, client-side drop-ingest plugin (screenshot / PDF / pasted text → extracted questions
+  → `studywithme-bg.learncard.v1` deck), recorded in `dev/razbiram.com/BIBLE.md` (2026-07-26).
+  What still holds from the original decision: **deck JSON remains the only contract between the
+  two repos.** Neither imports the other's code, and this repo is still not a dependency of
+  razbiram.com. What changes: razbiram.com is now also a *producer* of that JSON, not only a
+  consumer — so the two intakes must not drift.
+  - This repo stays the owner of the **richer** pipeline: `capture-ir.v1`, the evidence model, the
+    browser extension, and the review flow. razbiram.com's plugin is deliberately the thin,
+    zero-install path.
+  - The shared, non-negotiable principle both sides implement: **extraction, never generation** —
+    correctness is read from the source's own answer key and never inferred (as `extract.py`
+    already states). razbiram.com recorded this as a binding constraint too.
+  - `docs/schemas/learncard-target.v1.schema.json` is the single shape both intakes emit. A change
+    to it is a change to both.
+
 - **2026-07-26 — The razbiram-anki round-trip is out of M0 scope.** It gates M2A instead. M0 could
   not otherwise exit without first delivering M2A: the round-trip needs the hub-owned
   `razbiram.recall-deck.v1` contract and a razbiram-anki import path, neither of which exists. M0

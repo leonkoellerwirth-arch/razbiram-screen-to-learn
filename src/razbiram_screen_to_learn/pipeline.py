@@ -24,15 +24,15 @@ from razbiram_screen_to_learn.validators import Issue, validate_for_export
 #: `mcq.single`, `matching`, `typed`, `flashcard` and `image-occlusion` were verified against the
 #: shipped reference deck and the product's own validator at the pinned commit.
 #:
-#: `mcq.two-option.v1` and `mcq.multiple-select.v1` are the two additive formats razbiram.com is
+#: `mcq.true-false` and `mcq.multiple-select.v1` are the two additive formats razbiram.com is
 #: taking on. Their exact shapes are specified in `docs/schemas/learncard-target.v1.schema.json`
 #: and exercised by the committed examples, so the engine has something concrete to parse against.
-#: The identifiers themselves are still provisional — the family-owned names are an open BIBLE
-#: decision (see P4.8).
+#: The identifiers are the ones razbiram.com publishes in its capability profile
+#: (`learncard-type-system-extension-2026-07-26.md`, Phase 3); they are no longer provisional.
 LIVE_CAPABILITIES: frozenset[str] = frozenset(
     {
         "mcq.single",
-        "mcq.two-option.v1",
+        "mcq.true-false",
         "mcq.multiple-select.v1",
         "matching",
         "typed",

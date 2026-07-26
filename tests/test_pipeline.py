@@ -20,7 +20,7 @@ ROOT = Path(__file__).resolve().parents[1]
 FIXTURE = ROOT / "fixtures" / "pages" / "fixture.html"
 IR_SCHEMA = ROOT / "docs" / "schemas" / "capture-ir.v1.schema.json"
 
-EXTENDED = set(LIVE_CAPABILITIES) | {"mcq.multiple-select.v1", "mcq.two-option.v1"}
+EXTENDED = set(LIVE_CAPABILITIES) | {"mcq.multiple-select.v1", "mcq.true-false"}
 
 
 @pytest.fixture(scope="module")

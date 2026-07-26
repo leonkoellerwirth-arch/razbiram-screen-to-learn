@@ -27,7 +27,7 @@ MCQ_MAX_OPTIONS = 5
 #: Capability identifiers a target must declare before the matching family may be exported.
 REQUIRED_CAPABILITY = {
     "multiple-select": "mcq.multiple-select.v1",
-    "true-false": "mcq.two-option.v1",
+    "true-false": "mcq.true-false",
 }
 
 
@@ -97,7 +97,7 @@ def _export_flashcard(card: Card, sequence: int) -> tuple[dict | None, BlockedCa
 def _export_true_false(card: Card, sequence: int) -> tuple[dict | None, BlockedCard | None]:
     """Project the semantic true/false family onto the target's two-option MCQ shape.
 
-    Reachable only when the target declares ``mcq.two-option.v1``. The IR keeps true/false as its
+    Reachable only when the target declares ``mcq.true-false``. The IR keeps true/false as its
     own family and it becomes a two-option MCQ here, at the boundary — never earlier.
     """
     if card.answer is None or not card.labels:
