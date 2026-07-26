@@ -214,10 +214,14 @@ built to the current text would emit files the runtime cannot read.
       `docs/schemas/learncard-target.v1.schema.json` with a generated reference example covering
       all three mcq shapes plus flashcard. Verified in both directions: the schema accepts the
       committed examples, our real export, and the shipped 33-card deck.
-- [ ] **P4.9 — Confirm the capability identifiers with the hub.** `mcq.two-option.v1` and
-      `mcq.multiple-select.v1` are provisional names chosen here; the family-owned identifiers are
-      still an open BIBLE decision. Rename in `pipeline.LIVE_CAPABILITIES` and
-      `export.REQUIRED_CAPABILITY` once decided — the formats themselves do not change.
+- [x] **P4.9 — DONE: identifiers settled and now read, not hard-coded.** razbiram.com publishes
+      `/learncards/profile.v1.json`; the names are `mcq.true-false` and `mcq.multiple-select.v1`.
+      `mcq.two-option.v1` was invented here and is gone. The exporter reads a pinned copy of that
+      profile and fails closed if it is missing or malformed.
+- [x] **P4.10 — DONE: razbiram.com renders both formats.** Implemented there on branch
+      `feat/learncard-multiselect-truefalse`, Phases 1-3 of its own design doc: schema contract,
+      renderer + dispatch + a11y contract, capability profile. Verified end to end — a deck
+      exported from this repo resolves every card to the mode it was authored as.
 - [x] **P5.12 — Studio UI adopted from razbiram-anki.** React 19 + Vite under `apps/studio`, the
       donor's `styles.css`, class names, NodeMark and theme handling kept; only the middle
       replaced (POST to the loopback API instead of in-browser Anki conversion). Tailwind 4 via
