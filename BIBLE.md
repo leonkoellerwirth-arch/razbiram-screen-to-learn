@@ -108,6 +108,15 @@ backend.
   - `docs/schemas/learncard-target.v1.schema.json` is the single shape both intakes emit. A change
     to it is a change to both.
 
+- **2026-07-26 — Target capabilities are read from a pinned profile, and fail closed.** The
+  exporter reads a committed copy of razbiram.com's `/learncards/profile.v1.json` rather than a
+  hard-coded list or a live fetch: exports must work offline and a Golden run must not depend on a
+  remote file. `scripts/refresh-target-profile.sh` makes updating it a reviewable act. A missing or
+  malformed profile narrows to `mcq.single` — failing open would silently export families the
+  engine cannot render.
+- **2026-07-26 — Extraction ownership is OPEN; no new extraction code on either side.** razbiram.com
+  is building its own capture plugin, so the same rules are about to exist in Python here and
+  TypeScript there. See `docs/decisions/009-extraction-logic-ownership.md`.
 - **2026-07-26 — The razbiram-anki round-trip is out of M0 scope.** It gates M2A instead. M0 could
   not otherwise exit without first delivering M2A: the round-trip needs the hub-owned
   `razbiram.recall-deck.v1` contract and a razbiram-anki import path, neither of which exists. M0
