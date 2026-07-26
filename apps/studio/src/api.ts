@@ -23,6 +23,88 @@ export async function processFile(file: File): Promise<ProcessResponse> {
   return res.json() as Promise<ProcessResponse>;
 }
 
+/** One observation from the backend about work in flight. Mirrors `progress.ProgressEvent`. */
+export interface StageEvent {
+  stage: string;
+  detail: string;
+  /** 1-based position within `total`, when the stage is countable. */
+  index?: number;
+  /** Upper bound for `index`. May be reached early — finishing sooner is a success. */
+  total?: number;
+}
+
+export interface StreamHandlers {
+  /** Fraction of the file sent, 0..1. Real, from the browser. */
+  onUpload?: (fraction: number) => void;
+  /** A stage the backend actually reached. */
+  onStage?: (event: StageEvent) => void;
+}
+
+/**
+ * POST /v1/process/stream — the same work as `processFile`, narrated while it happens.
+ *
+ * XHR rather than fetch: it is the only API that reports upload progress *and* exposes the
+ * response as it arrives. The two matter at different moments — upload dominates for a large
+ * photo on a slow disk, OCR dominates everywhere else — and a bar that showed only one of them
+ * would sit still through the part the user is actually waiting for.
+ */
+export function processFileStreaming(
+  file: File,
+  handlers: StreamHandlers = {},
+): Promise<ProcessResponse> {
+  return new Promise((resolve, reject) => {
+    const body = new FormData();
+    body.append("file", file);
+
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "/v1/process/stream");
+
+    let consumed = 0; // bytes of responseText already turned into events
+    let result: ProcessResponse | null = null;
+    let failure: string | null = null;
+
+    const drain = () => {
+      const text = xhr.responseText;
+      // Only whole lines are parseable; a partial tail stays for the next progress event.
+      const boundary = text.lastIndexOf("\n");
+      if (boundary < consumed) return;
+      const chunk = text.slice(consumed, boundary);
+      consumed = boundary + 1;
+
+      for (const line of chunk.split("\n")) {
+        if (!line.trim()) continue;
+        let event: Record<string, unknown>;
+        try {
+          event = JSON.parse(line) as Record<string, unknown>;
+        } catch {
+          continue; // a malformed line must not abort a run that is otherwise fine
+        }
+        if (event.event === "result") {
+          result = event as unknown as ProcessResponse;
+        } else if (event.event === "error") {
+          failure = typeof event.detail === "string" ? event.detail : "Processing failed.";
+        } else {
+          handlers.onStage?.(event as unknown as StageEvent);
+        }
+      }
+    };
+
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable && e.total > 0) handlers.onUpload?.(e.loaded / e.total);
+    };
+    xhr.onprogress = drain;
+    xhr.onerror = () => reject(new Error("Could not reach the local studio backend."));
+    xhr.onload = () => {
+      drain();
+      if (failure) reject(new Error(failure));
+      else if (result) resolve(result);
+      else reject(new Error(`Server returned ${xhr.status} without a result.`));
+    };
+
+    xhr.send(body);
+  });
+}
+
 /** GET /health — used to verify the backend is reachable before upload. */
 export async function checkHealth(): Promise<{ status: string; version: string }> {
   const res = await fetch("/health");

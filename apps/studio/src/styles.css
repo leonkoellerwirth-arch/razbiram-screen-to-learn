@@ -323,3 +323,14 @@ a:hover { color: var(--primary-2); }
 .rz-json-viewer .cm-editor.cm-focused {
   outline: none;
 }
+
+/* Indeterminate progress: the bar paces across the track because no measured proportion exists.
+   Honoured only when the viewer accepts motion — a looping animation is exactly the kind that
+   prefers-reduced-motion is meant to stop. */
+@keyframes rz-indeterminate {
+  0% { margin-left: -35%; }
+  100% { margin-left: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  [role="progressbar"] > * { animation: none !important; margin-left: 0 !important; width: 100% !important; opacity: 0.45; }
+}

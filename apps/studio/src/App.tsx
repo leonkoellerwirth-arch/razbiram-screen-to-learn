@@ -3,12 +3,14 @@
 // Shell adapted from razbiram-anki/src/App.tsx: same NodeMark, same theme
 // hook, same drop zone pattern, same panel structure.  The middle layer
 // (browser-side Anki conversion) is replaced by a POST to /v1/process.
-import { useCallback, useMemo, useRef, useState } from "react";
-import { processFile } from "./api";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { processFileStreaming } from "./api";
+import type { StageEvent } from "./api";
 import type { ProcessResponse, ProcessExport } from "./types";
 import { CardList } from "./CardList";
 import { IssueList } from "./IssueList";
 import DeckJsonViewer from "./DeckJsonViewer";
+import ProgressPanel from "./ProgressPanel";
 
 // ---------------------------------------------------------------------------
 // Brand components (kept verbatim from the donor)
@@ -72,8 +74,7 @@ function humanSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function downloadJson(obj: unknown, filename: string): void {
-  const json = JSON.stringify(obj, null, 2);
+function downloadText(json: string, filename: string): void {
   const blob = new Blob([json], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -83,13 +84,22 @@ function downloadJson(obj: unknown, filename: string): void {
   URL.revokeObjectURL(url);
 }
 
+/**
+ * What the studio takes in. Images go through OCR on the server; .html/.txt are read directly.
+ * Mirrors ALLOWED_SUFFIXES in studio/server.py — the server rejects anything else regardless.
+ */
+const ACCEPTED_SUFFIXES = [
+  ".png", ".jpg", ".jpeg", ".webp", ".tif", ".tiff", ".bmp", ".gif",
+  ".html", ".htm", ".txt", ".md",
+] as const;
+
 // ---------------------------------------------------------------------------
 // Status machine
 // ---------------------------------------------------------------------------
 
 type Status =
   | { phase: "idle" }
-  | { phase: "uploading" }
+  | { phase: "working"; since: number; uploaded: number | null; stage: StageEvent | null }
   | { phase: "done"; result: ProcessResponse }
   | { phase: "error"; message: string };
 
@@ -106,18 +116,34 @@ function ExportPanel({ exportInfo, deckTitle }: { exportInfo: ProcessExport; dec
     [exportInfo.deck],
   );
 
+  // The edited buffer. A person may correct a card here before taking the file away, so copy and
+  // download must both read THIS, never the pristine extraction.
+  const [draft, setDraft] = useState(exportJson);
+  useEffect(() => setDraft(exportJson), [exportJson]);
+
+  const draftIsValid = useMemo(() => {
+    if (!draft.trim()) return false;
+    try {
+      JSON.parse(draft);
+      return true;
+    } catch {
+      return false;
+    }
+  }, [draft]);
+
   const onCopy = useCallback(() => {
-    if (!exportJson) return;
-    navigator.clipboard.writeText(exportJson).then(() => {
+    if (!draft) return;
+    navigator.clipboard.writeText(draft).then(() => {
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1500);
     });
-  }, [exportJson]);
+  }, [draft]);
 
   const onDownload = useCallback(() => {
-    if (!exportInfo.deck) return;
-    downloadJson(exportInfo.deck, `${deckTitle || "export"}.json`);
-  }, [exportInfo.deck, deckTitle]);
+    // Downloading invalid JSON would hand over a file the target cannot read.
+    if (!draftIsValid) return;
+    downloadText(draft, `${deckTitle || "export"}.json`);
+  }, [draft, draftIsValid, deckTitle]);
 
   return (
     <section style={{ marginTop: 20 }}>
@@ -174,6 +200,8 @@ function ExportPanel({ exportInfo, deckTitle }: { exportInfo: ProcessExport; dec
             <button
               className="rz-btn rz-btn-primary"
               onClick={onDownload}
+              disabled={!draftIsValid}
+              title={draftIsValid ? undefined : "The edited JSON does not parse yet."}
               style={{ minHeight: 44 }}
             >
               Download export JSON
@@ -195,7 +223,12 @@ function ExportPanel({ exportInfo, deckTitle }: { exportInfo: ProcessExport; dec
 
           {showJson && (
             <div style={{ marginTop: 14 }}>
-              <DeckJsonViewer value={exportJson} />
+              <DeckJsonViewer value={draft} onChange={setDraft} invalid={!draftIsValid} />
+              <p style={{ margin: "8px 2px 0", fontSize: 12, opacity: 0.75 }}>
+                {draftIsValid
+                  ? "Edit freely — Copy and Download take what you see here."
+                  : "This is not valid JSON yet, so Download is disabled."}
+              </p>
             </div>
           )}
         </div>
@@ -309,17 +342,23 @@ export default function App() {
   const accept = useCallback((f: File | undefined) => {
     if (!f) return;
     const name = f.name.toLowerCase();
-    if (!name.endsWith(".html") && !name.endsWith(".txt")) {
+    if (!ACCEPTED_SUFFIXES.some((suffix) => name.endsWith(suffix))) {
       setFile(f);
       setStatus({
         phase: "error",
-        message: "Please select an .html or .txt file.",
+        message: `Please select an image, or an .html or .txt file. Accepted: ${ACCEPTED_SUFFIXES.join(", ")}`,
       });
       return;
     }
     setFile(f);
-    setStatus({ phase: "uploading" });
-    processFile(f)
+    setStatus({ phase: "working", since: Date.now(), uploaded: 0, stage: null });
+    processFileStreaming(f, {
+      onUpload: (fraction) =>
+        setStatus((s) => (s.phase === "working" ? { ...s, uploaded: fraction } : s)),
+      onStage: (stage) =>
+        // The first stage means the bytes are in; from here the backend owns the narration.
+        setStatus((s) => (s.phase === "working" ? { ...s, uploaded: null, stage } : s)),
+    })
       .then((result) => setStatus({ phase: "done", result }))
       .catch((err: unknown) =>
         setStatus({
@@ -370,9 +409,9 @@ export default function App() {
           Screen capture → review-ready learning cards
         </h1>
         <p className="rz-muted" style={{ fontSize: 18, margin: "0 0 24px", maxWidth: 560 }}>
-          Drop a captured HTML or text file here. The backend extracts the
-          questions, validates them, and gives you a structured deck ready for
-          human review — before anything is exported.
+          Drop a screenshot, a photo of a page, or a captured HTML or text file.
+          The questions and their answer key are read from the material — nothing
+          is invented — and you get a structured deck to review, edit and download.
         </p>
 
         {/* Drop zone — keyboard-operable via role="button" + tabIndex + onKeyDown */}
@@ -393,12 +432,12 @@ export default function App() {
           }}
           role="button"
           tabIndex={0}
-          aria-label="Drop an .html or .txt file here, or press Enter to browse"
+          aria-label="Drop a screenshot, photo, or an .html or .txt file here, or press Enter to browse"
         >
           <input
             ref={inputRef}
             type="file"
-            accept=".html,.txt,text/html,text/plain"
+            accept={`image/*,${ACCEPTED_SUFFIXES.join(",")},text/html,text/plain`}
             style={{ display: "none" }}
             onChange={(e) => accept(e.target.files?.[0])}
           />
@@ -410,23 +449,21 @@ export default function App() {
             </>
           ) : (
             <>
-              <div style={{ fontWeight: 700, fontSize: 18 }}>Drop your capture file here</div>
+              <div style={{ fontWeight: 700, fontSize: 18 }}>Drop a screenshot or photo here</div>
               <div className="rz-muted" style={{ marginTop: 4 }}>or click to browse</div>
               <div className="rz-faint" style={{ marginTop: 6, fontSize: 13 }}>
-                accepts .html and .txt
+                images (read on this machine), .html, .txt
               </div>
             </>
           )}
         </div>
 
-        {status.phase === "uploading" && (
-          <div className="rz-card rz-muted" style={{ marginTop: 20 }}>
-            Processing — sending to local backend …
-          </div>
+        {status.phase === "working" && (
+          <ProgressPanel since={status.since} uploaded={status.uploaded} stage={status.stage} />
         )}
 
         {status.phase === "error" && (
-          <div className="rz-card" style={{ marginTop: 20, borderColor: "var(--primary)" }}>
+          <div className="rz-card" style={{ marginTop: 20, borderColor: "var(--danger)" }}>
             <strong>Something went wrong.</strong>
             <div className="rz-muted" style={{ marginTop: 6 }}>{status.message}</div>
           </div>
