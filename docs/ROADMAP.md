@@ -18,7 +18,8 @@ Deliver:
 - single-choice, true/false, multiple-select, flashcard, and image-occlusion Golden cases;
 - capability-gated exporter.
 
-Exit: all proof-of-concept criteria in `evaluation/FEASIBILITY.md` pass.
+Exit: all proof-of-concept criteria in `evaluation/FEASIBILITY.md` pass. The razbiram-anki
+round-trip is explicitly out of M0 scope and gates M2A instead.
 
 ## M1 — Core local pipeline
 
@@ -75,6 +76,8 @@ Cross-repo deliverables:
 - `.reviewed-deck → .apkg → parse` Golden round-trips;
 - per-card capability report with no silent degradation;
 - `Open in razbiram-anki` exact-origin handshake after file handoff is green.
+
+Exit: the M2A gate criteria in `evaluation/FEASIBILITY.md` pass.
 
 M2A does not block the first native Razbiram JSON vertical slice, but it is part of the ecosystem
 release rather than an unrelated future integration.

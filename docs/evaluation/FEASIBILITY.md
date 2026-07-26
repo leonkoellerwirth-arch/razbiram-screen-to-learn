@@ -140,6 +140,12 @@ Proceed to product implementation only if M0 proves:
 7. multiple-select is correctly extracted and blocked without target capability;
 8. an existing flashcard and image-occlusion fixture round-trip through the target adapter;
 9. cloud-disabled extraction still produces a valid compatible deck;
-10. one reviewed-deck file hands off to razbiram-anki and round-trips a supported `.apkg`;
-11. unsupported Anki families block without semantic degradation;
-12. session deletion removes imported, browser, and extension-derived artifacts.
+10. session deletion removes imported, browser, and extension-derived artifacts.
+
+## M2A gate criteria — razbiram-anki handoff
+
+Out of M0 scope. These require the hub-owned `razbiram.recall-deck.v1` contract and a razbiram-anki
+import path, neither of which exists yet; they gate the M2A ecosystem milestone, not the M0 spike.
+
+1. one reviewed-deck file hands off to razbiram-anki and round-trips a supported `.apkg`;
+2. unsupported Anki families block without semantic degradation.
