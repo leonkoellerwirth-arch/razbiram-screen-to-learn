@@ -206,7 +206,7 @@ built to the current text would emit files the runtime cannot read.
 Ordered so each slice is demonstrable and revertible. Detail is deliberately thin here; refine each
 slice when its phase starts, against the then-repaired contracts.
 
-- [ ] **P5.1** Repo skeleton: `pyproject.toml`, `src/razbiram_screen_to_learn/`, `tests/`, ruff +
+- [x] **P5.1** Repo skeleton: `pyproject.toml`, `src/razbiram_screen_to_learn/`, `tests/`, ruff +
       pytest. Gate must stay green from the first commit — it activates the Python checks
       automatically.
 - [ ] **P5.2** `contracts/`: Pydantic 2 models for `ingest-envelope.v1`, `capture-ir.v1`,
