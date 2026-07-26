@@ -4,6 +4,8 @@
 .DS_Store
 node_modules/
 dist/
+# tsc's incremental cache — rewritten by every build, so tracking it makes a clean tree impossible
+*.tsbuildinfo
 .venv/
 __pycache__/
 .pytest_cache/
