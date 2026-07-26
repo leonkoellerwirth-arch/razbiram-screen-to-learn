@@ -224,7 +224,7 @@ slice when its phase starts, against the then-repaired contracts.
       from `FEASIBILITY.md` criterion 3.
 - [x] **P5.4** Identity module implementing P1.6 exactly, with determinism tests that hash the same
       input twice through independent paths.
-- [ ] **P5.5** Synthetic learning-page fixture with question/reveal transitions (owned content, no
+- [x] **P5.5** Synthetic learning-page fixture with question/reveal transitions (owned content, no
       third-party capture).
 - [ ] **P5.6** Minimal WebExtension fixture on `activeTab`, emitting `extension-capture.v1` with the
       P1.2 `captureState`. Include an observe-mode wake-on-message smoke test — MV3 service-worker
