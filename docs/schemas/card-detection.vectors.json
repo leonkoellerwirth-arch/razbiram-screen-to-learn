@@ -1,0 +1,133 @@
+{
+  "$comment": "Conformance suite for docs/architecture/CARD_TYPE_DETECTION.md. Any engine that auto-detects card shape — razbiram.com included — should pass every case. `card` is the input; `mode` is the required result; `typedPromotionSafe` is whether the runtime may re-present it as typed recall. Cases are deliberately minimal: only the fields detection reads are present, because detection must not depend on anything else.",
+  "specification": "docs/architecture/CARD_TYPE_DETECTION.md",
+  "cases": [
+    {
+      "name": "plain single-answer mcq",
+      "card": { "type": "mcq", "correctAnswer": "Vacuum" },
+      "mode": "mcq-single",
+      "typedPromotionSafe": true
+    },
+    {
+      "name": "true/false carries its marker",
+      "card": { "type": "mcq", "sourceFormat": "true-false", "correctAnswer": "True" },
+      "mode": "mcq-true-false",
+      "typedPromotionSafe": true
+    },
+    {
+      "name": "multiple-select carries its marker",
+      "card": {
+        "type": "mcq",
+        "selectionMode": "multiple",
+        "correctOptionIds": ["opt_a", "opt_c"]
+      },
+      "mode": "mcq-multiple",
+      "typedPromotionSafe": false
+    },
+    {
+      "name": "multiple-select is never typed-promoted even if a correctAnswer leaked in",
+      "$comment": "The format omits correctAnswer for this shape. If one ever appears, detection must still refuse promotion — typing one answer for a multi-answer card marks a correct learner wrong.",
+      "card": {
+        "type": "mcq",
+        "selectionMode": "multiple",
+        "correctAnswer": "Cellular organization",
+        "correctOptionIds": ["opt_a", "opt_c"]
+      },
+      "mode": "mcq-multiple",
+      "typedPromotionSafe": false
+    },
+    {
+      "name": "two options alone do not make a true/false card",
+      "$comment": "Counting options answers a different question than the one being asked. A genuine single-answer question may have two options.",
+      "card": {
+        "type": "mcq",
+        "correctAnswer": "Alpha",
+        "options": [
+          { "text": "Alpha", "isCorrect": true },
+          { "text": "Beta", "isCorrect": false }
+        ]
+      },
+      "mode": "mcq-single",
+      "typedPromotionSafe": true
+    },
+    {
+      "name": "several correct options alone do not make a multiple-select card",
+      "$comment": "Without the marker this is a malformed single-answer card, not a different shape. It must not be silently reinterpreted.",
+      "card": {
+        "type": "mcq",
+        "correctAnswer": "Alpha",
+        "options": [
+          { "text": "Alpha", "isCorrect": true },
+          { "text": "Beta", "isCorrect": true },
+          { "text": "Gamma", "isCorrect": false }
+        ]
+      },
+      "mode": "mcq-single",
+      "typedPromotionSafe": true
+    },
+    {
+      "name": "a multiple-select card with one correct option is still multiple-select",
+      "$comment": "The learner must still be able to select more than one, and scoring is still all-or-nothing.",
+      "card": {
+        "type": "mcq",
+        "selectionMode": "multiple",
+        "correctOptionIds": ["opt_a"]
+      },
+      "mode": "mcq-multiple",
+      "typedPromotionSafe": false
+    },
+    {
+      "name": "both markers is invalid, not a coin flip",
+      "card": {
+        "type": "mcq",
+        "selectionMode": "multiple",
+        "sourceFormat": "true-false"
+      },
+      "mode": "unknown",
+      "typedPromotionSafe": false
+    },
+    {
+      "name": "flashcard",
+      "card": { "type": "flashcard", "front": { "en": "Q" }, "back": { "en": "A" } },
+      "mode": "flashcard",
+      "typedPromotionSafe": false
+    },
+    {
+      "name": "typed",
+      "card": { "type": "typed", "acceptableAnswers": ["entropy"] },
+      "mode": "typed",
+      "typedPromotionSafe": false
+    },
+    {
+      "name": "matching",
+      "card": { "type": "matching", "leftItems": [], "rightItems": [], "correctPairs": [] },
+      "mode": "matching",
+      "typedPromotionSafe": false
+    },
+    {
+      "name": "image occlusion",
+      "card": { "type": "image-occlusion", "asset": "a.png", "regions": [] },
+      "mode": "image-occlusion",
+      "typedPromotionSafe": false
+    },
+    {
+      "name": "an unrecognised selectionMode is not multiple-select",
+      "card": { "type": "mcq", "selectionMode": "single", "correctAnswer": "Alpha" },
+      "mode": "mcq-single",
+      "typedPromotionSafe": true
+    },
+    {
+      "name": "an unrecognised type is unknown, never a default render",
+      "$comment": "New formats will be added again. Falling back to MCQ turns an unrecognised card into a plausible-looking wrong one.",
+      "card": { "type": "ordering", "steps": ["a", "b"] },
+      "mode": "unknown",
+      "typedPromotionSafe": false
+    },
+    {
+      "name": "a missing type is unknown",
+      "card": { "correctAnswer": "Alpha" },
+      "mode": "unknown",
+      "typedPromotionSafe": false
+    }
+  ]
+}

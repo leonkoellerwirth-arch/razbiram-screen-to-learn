@@ -179,6 +179,9 @@
       },
       "allOf": [
         {
+          "$ref": "#/$defs/discriminatorsAreExclusive"
+        },
+        {
           "$ref": "#/$defs/mcqSingle"
         },
         {
@@ -433,6 +436,16 @@
           "type": "string"
         }
       ]
+    },
+    "discriminatorsAreExclusive": {
+      "title": "A card carries at most one shape marker",
+      "description": "Auto-detection must be unambiguous: a card that declared both sourceFormat and selectionMode could be read as two different shapes, and whichever the engine checked first would win by accident. Exactly one marker, or none for the plain single-answer form.",
+      "not": {
+        "required": [
+          "sourceFormat",
+          "selectionMode"
+        ]
+      }
     }
   }
 }
