@@ -30,9 +30,12 @@ PASS · secure pending commit/push_
 
 ### Reviewed baselines
 
+All re-verified 2026-07-26; the first five are still their repo's HEAD.
+
 - screenshot-to-code: `6094fd710becd981fbcf29cfc32d7ebef921866d`
 - razbiram-nlp: `48b5beb`
 - razbiram-anki: `119bcea`
 - razbiram-listen: `6d190e2`
 - razbiram.com: `fd88f7c2`
-- studywithme_db: `12f9381`
+- studywithme_db: `553e857` (was `12f9381`; the newer commit adds an Anki processing
+  workflow and does not touch `app/studywithme-bg/learncards/`)
