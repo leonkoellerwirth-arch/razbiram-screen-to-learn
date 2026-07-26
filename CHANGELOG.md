@@ -8,6 +8,17 @@ The application and its data contracts use independent semantic versions.
 
 ### Added
 
+- **Images as intake.** Drop a screenshot or a photo of a page and get cards. Structure is read
+  from the material itself — letter markers where they exist, otherwise typography, the widget in
+  front of each choice, and the colour a page uses to mark its answers. Nothing to configure, and
+  no language to choose. Needs the `tesseract` binary; see the README.
+- **`./start.sh`** — one command to build the studio and serve it locally.
+- **Progress while you wait.** Reading a full page takes about a minute; the studio now says which
+  stage it is in and how long it has been running instead of showing one unchanging label. No
+  proportion is displayed that was not measured.
+- **The deck JSON is editable before download**, so a card the extractor could not resolve can be
+  corrected in place. Copy and download take what you see; JSON that does not parse blocks the
+  download rather than handing over a file the target cannot read.
 - CLI `extract` / `validate` / `export` and a local drop-in studio (`studio`) — the first working
   path from a captured page to a validated, capability-gated deck.
 - Deterministic identifiers (`IDENTITY_ALGORITHMS.md`) shared by the Python core and the extension.
@@ -23,6 +34,14 @@ The application and its data contracts use independent semantic versions.
   hard-coded list, and fail closed when it is missing or malformed.
 - Export now blocks a card the target cannot represent, with a human-readable reason, instead of
   degrading it.
+
+### Fixed
+
+- The exporter refuses a card whose answer was never evidenced. It relied on the validator being
+  called alongside it; a caller reading the deck directly would have received the card.
+- A true/false question printed without an answer key is no longer demoted to single choice.
+- An answer wrapped across lines no longer splits its question into fragments.
+- A long deck title no longer produces a key that the deck schema rejects.
 
 ### Added
 

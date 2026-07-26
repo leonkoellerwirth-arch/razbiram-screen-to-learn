@@ -117,6 +117,39 @@ backend.
 - **2026-07-26 — Extraction ownership is OPEN; no new extraction code on either side.** razbiram.com
   is building its own capture plugin, so the same rules are about to exist in Python here and
   TypeScript there. See `docs/decisions/009-extraction-logic-ownership.md`.
+  _(SUPERSEDED the same day — see the owner decision below.)_
+- **2026-07-26 (owner decision) — Extraction lives HERE; razbiram.com consumes the deck JSON.**
+  The freeze above was lifted deliberately: image intake cannot work without an extractor on this
+  side. `textseg`/`textcards` began as a port of razbiram.com's `segment.ts`/`classify.ts` and now
+  carry fixes the original lacks. **razbiram.com's copy is the one that should retire**; until it
+  does the two are knowingly divergent and ADR 009 records how they are reunited.
+- **2026-07-26 — Structure may be drawn rather than written.** Three measured signals, in
+  `screenshot.py`: the two type sizes most of the page is set in are question and choice; a choice
+  opens with a short, low-confidence token (the widget is not text); a row whose background departs
+  from the page is marked. Indentation was measured and rejected — option starts and wrapped
+  continuations overlap. Chrome is dropped as unreadable **or** wordless; neither test suffices
+  alone, since a cell border reads at the confidence of a real answer.
+- **2026-07-26 — Where a page marks in two colours, the MORE COMMON one means correct.** A results
+  view marks every right answer but only the questions the reader got wrong. Ties bind nothing.
+  Marks covering more than half a question are withdrawn: emphasis that marks everything
+  distinguishes nothing. Half stays legal — true/false marks one of two.
+- **2026-07-26 — The option marker sequence, not the numbering, bounds a question.** A, B, C, D
+  then A again is a new question. Numbering failed first: OCR drops a leading digit readily, and
+  then number-anchored segmentation merges two questions silently. Plain text after an option run
+  is therefore a wrapped answer, not a new stem.
+- **2026-07-26 — Family is read from the material, not from whether the answer is known.** A
+  true/false question printed without its key is still true/false; the ported rule demoted it to
+  single-choice, losing the distinction invariant 4 exists to keep.
+- **2026-07-26 — No user-facing language choice.** This tool turns material into cards; it is not a
+  language product. Every preferred tesseract model present is loaded at once.
+- **2026-07-26 — A local LLM is a fallback, never the structurer.** Measured on real OCR text:
+  `aya-expanse:8b` dropped the last option of every question; `llama3.2` split wrapped options into
+  separate answers. Both fail silently, which for exam material means teaching an incomplete
+  question. The seam stays open at `model-inferred`, which `EXPORTABLE_TIERS` already refuses
+  without human confirmation — but geometry leads.
+- **2026-07-26 — Progress reports only what was measured.** Upload bytes, OCR attempt n of a known
+  ladder, card n of m. Absent a proportion the bar paces; `total` is an upper bound, so stopping
+  early reads as success.
 - **2026-07-26 — The razbiram-anki round-trip is out of M0 scope.** It gates M2A instead. M0 could
   not otherwise exit without first delivering M2A: the round-trip needs the hub-owned
   `razbiram.recall-deck.v1` contract and a razbiram-anki import path, neither of which exists. M0
