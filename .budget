@@ -20,5 +20,18 @@
 # a breach of it: README gained the Getting-started and Prerequisites sections a public clone needs
 # (without them `./start.sh` succeeds and the first dropped screenshot fails on a missing binary),
 # and BIBLE gained this session's decision register. Trimmed once before raising.
-DOC_TOKENS_MAX=9610
-SRC_LOC_MAX=3436
+#
+# 2026-07-27 — SRC_LOC_MAX 3436 -> 3831, DOC_TOKENS_MAX 9610 -> 11870. One capability and one
+# document, argued in their own right as the note above demands.
+#
+# Source: `draft.py` (the draft a person edits, and the rules that judge it) plus `ExportPanel.tsx`
+# lifted out of `App.tsx`. It exists because the studio could recognise three cards and show none
+# of them — the JSON editor lived only in the branch where an export already existed. Nothing here
+# duplicates the exporter: `check_deck` is the one place the target's rules are applied to JSON
+# that has no Capture IR behind it, and the browser asks it rather than re-implementing it.
+#
+# Docs: the README now carries a worked example — one quiz with and without its answer key, with
+# the real JSON and the real gate messages — because a public tool that never shows its output
+# asks a reader to take it on faith. BIBLE and HANDOFF grew by this session's entries.
+DOC_TOKENS_MAX=11870
+SRC_LOC_MAX=3831
