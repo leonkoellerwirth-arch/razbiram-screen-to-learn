@@ -1,0 +1,41 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "razbiram-screen-to-learn"
+version = "0.0.1"
+description = "Turn learning screens into reviewable, evidence-backed razbiram learncards."
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.11"
+dependencies = [
+  "pydantic>=2.7",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8",
+  "ruff>=0.6",
+  "jsonschema>=4.22",
+]
+
+[project.scripts]
+razbiram-screen-to-learn = "razbiram_screen_to_learn.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/razbiram_screen_to_learn"]
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+markers = [
+  "slow: needs network, a real model, or a browser; excluded from the gate and CI",
+]
