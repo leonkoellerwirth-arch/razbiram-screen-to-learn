@@ -1,0 +1,64 @@
+<!doctype html>
+<!--
+  Source of fixtures/images/quiz.png — the raster the OCR path is tested against.
+
+  Written for this project. The questions are generic textbook facts, deliberately chosen so the
+  fixture carries no third-party question bank and no platform branding.
+
+  It exercises the three families in one page and marks its answers the way printed material does,
+  with a trailing key rather than with colour — the drawn-structure case is covered by tests that
+  need no image. Regenerate with fixtures/images/README.md.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Biology — practice test</title>
+    <style>
+      body {
+        font: 16px/1.5 -apple-system, "Segoe UI", Roboto, sans-serif;
+        color: #111;
+        background: #fff;
+        margin: 32px;
+        width: 900px;
+      }
+      h1 { font-size: 22px; margin: 0 0 20px; }
+      .q { margin: 0 0 18px; }
+      .stem { font-weight: 600; margin: 0 0 6px; }
+      .opt { margin: 2px 0 2px 18px; }
+      .key { margin-top: 24px; }
+      .key p { margin: 2px 0; }
+    </style>
+  </head>
+  <body>
+    <h1>Biology — practice test</h1>
+
+    <div class="q">
+      <p class="stem">1. Which organ produces insulin?</p>
+      <p class="opt">A) Liver</p>
+      <p class="opt">B) Pancreas</p>
+      <p class="opt">C) Kidney</p>
+      <p class="opt">D) Spleen</p>
+    </div>
+
+    <div class="q">
+      <p class="stem">2. Select all that apply. Which of these are metals?</p>
+      <p class="opt">A) Iron</p>
+      <p class="opt">B) Oxygen</p>
+      <p class="opt">C) Copper</p>
+      <p class="opt">D) Helium</p>
+    </div>
+
+    <div class="q">
+      <p class="stem">3. A photon has zero rest mass.</p>
+      <p class="opt">A) True</p>
+      <p class="opt">B) False</p>
+    </div>
+
+    <div class="key">
+      <p>Answers:</p>
+      <p>1. B</p>
+      <p>2. A, C</p>
+      <p>3. A</p>
+    </div>
+  </body>
+</html>
