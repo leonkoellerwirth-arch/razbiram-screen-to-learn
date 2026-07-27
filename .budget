@@ -41,5 +41,14 @@
 # what marks the answer. Thirteen of fourteen now read as clean prose. The lines bought are the
 # crop, the two judgements that accept or refuse a re-read, and the widget strip that must not
 # eat a real two-letter word.
+#
+# 2026-07-27 (third) — SRC_LOC_MAX 3920 -> 4180. `quality.py`: a verdict on recognised text,
+# separate from every reader that produces it. The readers each fix one layout; this asks the
+# question none of them can ask about itself — did it work? — and it is what stops the failure
+# class that prompted it: four of fourteen exported cards carried a correct answer nobody could
+# read, at tier source-verified, because something *was* marked and the text *was* non-empty.
+# A marked answer that fails the verdict can no longer be source-verified. The lines are the two
+# script tests, the furniture and letter-ratio checks, and the fold that repairs what is
+# unambiguous while leaving the rest reported.
 DOC_TOKENS_MAX=11870
-SRC_LOC_MAX=3920
+SRC_LOC_MAX=4180

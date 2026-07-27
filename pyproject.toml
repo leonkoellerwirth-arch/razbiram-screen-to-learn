@@ -38,15 +38,17 @@ src = ["src", "tests"]
 select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
 
 [tool.ruff.lint.per-file-ignores]
-# RUF001/2/3 flag characters that look like another script's. In these three files that is the
+# RUF001/2/3 flag characters that look like another script's. In these files that is the
 # subject matter, not a mistake: OCR returns Cyrillic А/В/С for Latin A/B/C, and binding an answer
 # key across that split is exactly what they implement. The rule stays on everywhere else.
 "src/razbiram_screen_to_learn/ocr.py" = ["RUF001", "RUF002", "RUF003"]
+"src/razbiram_screen_to_learn/quality.py" = ["RUF001", "RUF002", "RUF003"]
 "src/razbiram_screen_to_learn/textcards.py" = ["RUF001", "RUF002", "RUF003"]
 "src/razbiram_screen_to_learn/textseg.py" = ["RUF001", "RUF002", "RUF003"]
 "tests/test_textpath.py" = ["RUF001", "RUF002", "RUF003"]
 # Same reason: these fixtures reproduce real OCR output, ambiguous glyphs and all.
 "tests/test_screenshot.py" = ["RUF001", "RUF002", "RUF003"]
+"tests/test_quality.py" = ["RUF001", "RUF002", "RUF003"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

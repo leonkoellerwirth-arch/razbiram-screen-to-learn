@@ -34,6 +34,7 @@ from razbiram_screen_to_learn.identity import (
     question_fingerprint,
     source_id,
 )
+from razbiram_screen_to_learn.quality import fold_homoglyphs, readability
 from razbiram_screen_to_learn.textseg import AnswerKey, RawBlock, block_question_text
 
 EXTRACTOR = "text-v1"
@@ -178,7 +179,10 @@ def build_card(
     markers = [(line.marker or "").upper() for line in block.option_lines]
     wanted = {letter.upper() for letter in fold_letters(resolution.letters, markers)}
 
-    texts = [clean_text(line.text) for line in block.option_lines]
+    # Repair before judging: a word written half in Latin and half in Cyrillic is a recogniser
+    # slip with an unambiguous fix, and folding it back costs a person nothing to review. Text that
+    # is still damaged afterwards is reported rather than published — see the tier check below.
+    texts = [fold_homoglyphs(clean_text(line.text)) for line in block.option_lines]
 
     # Report the block's actual defect. Blaming a missing answer key for a block that has no
     # question at all sends a reviewer looking for the wrong thing.
@@ -251,6 +255,23 @@ def build_card(
 
     # Only a declared answer key is source-verified. Without one the card must not reach export.
     tier = "source-verified" if correct_count > 0 else "source-ambiguous"
+
+    # …and a declared answer we could not actually read is not an answer either. This is the check
+    # that closes the failure class found on a real assessment: four of fourteen exported cards
+    # carried a mangled correct option ("Therei h thi Sprint 0 in 5"), every one of them the tinted
+    # row, and every one of them exported as source-verified because *something* was marked. Being
+    # marked is not the same as being legible, and a learner drilled on an unreadable answer is
+    # worse off than one shown no card at all.
+    if tier == "source-verified":
+        damaged = [
+            verdict
+            for option, verdict in ((o, readability(o.text)) for o in options if o.isCorrect)
+            if not verdict.ok
+        ]
+        if damaged:
+            tier = "source-ambiguous"
+            review_reasons.append("unreadable-answer-text")
+            review_reasons.extend(damaged[0].reasons)
     prompt = Field_(value={locale: question}, evidence=[prompt_evidence], confidence=1.0)
     review = Review(
         status="needs-review",
