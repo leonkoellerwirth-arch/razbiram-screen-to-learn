@@ -25,7 +25,7 @@ from pydantic import BaseModel
 
 from razbiram_screen_to_learn import __version__
 from razbiram_screen_to_learn.contracts import dump_document
-from razbiram_screen_to_learn.draft import check_deck, draft_deck
+from razbiram_screen_to_learn.draft import check_deck, draft_deck, finalize_deck
 from razbiram_screen_to_learn.ocr import IMAGE_SUFFIXES, OcrUnavailable
 from razbiram_screen_to_learn.pipeline import (
     PipelineResult,
@@ -225,7 +225,13 @@ def create_app() -> FastAPI:
         behind it. The studio asks before it lets anyone download.
         """
         errors = check_deck(request.deck, capabilities=set(request.capabilities))
-        return {"ok": not errors, "errors": errors}
+        # `deck` is what a caller should actually save: the same content with the draft's working
+        # notes removed, so a cleared deck never ships a card still labelled "needs-answer".
+        return {
+            "ok": not errors,
+            "errors": errors,
+            "deck": finalize_deck(request.deck) if not errors else None,
+        }
 
     @app.post("/v1/process/stream")
     async def process_stream(file: UploadFile) -> StreamingResponse:

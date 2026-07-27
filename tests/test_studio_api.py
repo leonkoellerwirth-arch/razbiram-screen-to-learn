@@ -84,7 +84,11 @@ def test_an_edited_deck_is_judged_by_the_same_rules_as_the_export(client: TestCl
     capabilities = body["export"]["capabilities"]
 
     passed = client.post("/v1/deck/check", json={"deck": deck, "capabilities": capabilities}).json()
-    assert passed == {"ok": True, "errors": []}
+    assert passed["ok"] is True
+    assert passed["errors"] == []
+    # What a caller saves: the same deck with the draft's working notes gone.
+    assert "status" not in passed["deck"]
+    assert all("review" not in card for card in passed["deck"]["cards"])
 
     deck["cards"][0]["correctAnswer"] = "an answer nobody offered"
     failed = client.post("/v1/deck/check", json={"deck": deck, "capabilities": capabilities}).json()

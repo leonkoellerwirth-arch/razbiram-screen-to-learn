@@ -108,6 +108,12 @@ export function processFileStreaming(
 export interface DeckCheck {
   ok: boolean;
   errors: string[];
+  /**
+   * What to actually save when `ok` — the submitted deck with the draft's working notes
+   * (`status`, per-card `review`) removed. Null while anything is still wrong, because there is
+   * nothing to save yet.
+   */
+  deck: unknown | null;
 }
 
 /**

@@ -43,6 +43,44 @@ def _evidenced(card: Card) -> bool:
     return card.answerEvidenceTier in EXPORTABLE_TIERS
 
 
+#: The per-card status the draft writes into the JSON itself.
+#:
+#: A status a person can only see in the studio is a status they lose the moment they download the
+#: file, hand it to someone, or come back to it tomorrow. The JSON is the deliverable, so the JSON
+#: is where "this one still needs an answer" has to be legible — the UI renders it, it does not own
+#: it. The field is additional to `learncard.v1` (its card object allows extra properties) and the
+#: gate ignores it: what makes a card exportable is its content, never a label saying it is.
+STATUS_READY = "ready"
+STATUS_NEEDS_ANSWER = "needs-answer"
+STATUS_NEEDS_REVIEW = "needs-review"
+
+
+def _review(card: Card, *, answered: bool) -> dict:
+    """What a person still has to do to this card, written where they will actually read it."""
+    reasons = list(card.review.blockingReasons)
+    if not answered:
+        status = STATUS_NEEDS_ANSWER
+        if card.answerEvidenceTier not in EXPORTABLE_TIERS and card.answerEvidenceTier:
+            # Naming the tier matters: "the material never said" and "we read it but the reading is
+            # not good enough to publish" are different problems with different fixes.
+            reasons.append(
+                f"answer evidence is {card.answerEvidenceTier!r}, which cannot be exported"
+            )
+        elif not reasons:
+            reasons.append("the material does not state which option is correct")
+    elif reasons:
+        status = STATUS_NEEDS_REVIEW
+    else:
+        status = STATUS_READY
+
+    entry: dict = {"status": status, "answered": answered}
+    if reasons:
+        entry["reasons"] = reasons
+    if card.answerEvidenceTier:
+        entry["answerEvidenceTier"] = card.answerEvidenceTier
+    return entry
+
+
 def _draft_choice(card: Card, sequence: int) -> dict:
     options = card.options or []
     keep = _evidenced(card)
@@ -63,6 +101,7 @@ def _draft_choice(card: Card, sequence: int) -> dict:
                 "mode": card.scoring.mode if card.scoring else "all-or-nothing",
                 "points": card.scoring.points if card.scoring else 1,
             },
+            "review": _review(card, answered=any(o["isCorrect"] for o in drafted)),
         }
 
     drafted = [{"text": o.text, "isCorrect": o.isCorrect and keep} for o in options]
@@ -76,6 +115,7 @@ def _draft_choice(card: Card, sequence: int) -> dict:
         "correctAnswer": correct["text"] if correct else "",
         "options": drafted,
         "scoring": {"mode": "single-best-answer", "points": 1},
+        "review": _review(card, answered=correct is not None),
     }
 
 
@@ -96,6 +136,7 @@ def _draft_true_false(card: Card, sequence: int) -> dict:
             {"text": false_label, "isCorrect": bool(answered and not card.answer)},
         ],
         "scoring": {"mode": "single-best-answer", "points": 1},
+        "review": _review(card, answered=answered),
     }
 
 
@@ -109,6 +150,7 @@ def _draft_flashcard(card: Card, sequence: int) -> dict:
         "question": front or dict(card.prompt.value),
         "front": front,
         "back": back,
+        "review": _review(card, answered=bool(front) and bool(back)),
     }
 
 
@@ -148,10 +190,41 @@ def draft_deck(document: CaptureIR, *, estimated_minutes: int | None = None) -> 
 
     if not cards:
         return DraftResult(deck=None, card_ids={})
-    return DraftResult(
-        deck=deck_envelope(document, cards, estimated_minutes=estimated_minutes),
-        card_ids=card_ids,
-    )
+
+    deck = deck_envelope(document, cards, estimated_minutes=estimated_minutes)
+    # Said at the top of the file as well as per card, because a downloaded draft travels: whoever
+    # opens it next may never have seen the studio that produced it.
+    deck["status"] = "draft"
+    deck["meta"]["review"] = {
+        "cards": len(cards),
+        "needsAnswer": sum(1 for c in cards if c["review"]["status"] == STATUS_NEEDS_ANSWER),
+        "needsReview": sum(1 for c in cards if c["review"]["status"] == STATUS_NEEDS_REVIEW),
+        "ready": sum(1 for c in cards if c["review"]["status"] == STATUS_READY),
+    }
+    return DraftResult(deck=deck, card_ids=card_ids)
+
+
+def finalize_deck(deck: object) -> object:
+    """Strip the draft's working notes so a cleared deck leaves as a plain target deck.
+
+    ``review`` and ``status`` exist to tell a person what is still missing. Once nothing is, they
+    are stale the moment they ship — and a card that still says ``needs-answer`` inside a deck the
+    gate has cleared reads as a contradiction to whoever opens it next. Called only after
+    ``check_deck`` returns empty.
+    """
+    if not isinstance(deck, dict):
+        return deck
+    cleaned = {k: v for k, v in deck.items() if k != "status"}
+    meta = cleaned.get("meta")
+    if isinstance(meta, dict):
+        cleaned["meta"] = {k: v for k, v in meta.items() if k != "review"}
+    cards = cleaned.get("cards")
+    if isinstance(cards, list):
+        cleaned["cards"] = [
+            {k: v for k, v in card.items() if k != "review"} if isinstance(card, dict) else card
+            for card in cards
+        ]
+    return cleaned
 
 
 def _check_option_bounds(card: dict, options: list, where: str) -> list[str]:

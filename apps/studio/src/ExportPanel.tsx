@@ -117,8 +117,19 @@ export default function ExportPanel({
 
   const onDownload = useCallback(() => {
     if (!downloadable) return;
-    downloadText(text, `${deckTitle || "export"}.json`);
-  }, [downloadable, text, deckTitle]);
+    // The backend hands back the deck to save — same content, working notes stripped — so a
+    // cleared deck never ships a card still labelled "needs-answer". Falling back to the editor
+    // text covers the untouched-export case, which never had those notes to begin with.
+    const payload = check?.deck != null ? `${JSON.stringify(check.deck, null, 2)}\n` : text;
+    downloadText(payload, `${deckTitle || "export"}.json`);
+  }, [downloadable, check, text, deckTitle]);
+
+  // Always available, even when nothing is exportable. A person who cannot finish the answers here
+  // must still be able to take the questions away and finish them elsewhere: the draft carries its
+  // own status per card, so the file says what is missing without this screen.
+  const onDownloadDraft = useCallback(() => {
+    downloadText(text, `${deckTitle || "capture"}.draft.json`);
+  }, [text, deckTitle]);
 
   if (!deck && !draft) return null;
 
@@ -197,6 +208,9 @@ export default function ExportPanel({
             style={{ minHeight: 44 }}
           >
             Download export JSON
+          </button>
+          <button className="rz-btn" onClick={onDownloadDraft} style={{ minHeight: 44 }}>
+            Download draft JSON
           </button>
           <button
             className="rz-btn"

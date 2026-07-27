@@ -14,7 +14,7 @@ from pathlib import Path
 import pytest
 from jsonschema import Draft202012Validator
 
-from razbiram_screen_to_learn.draft import check_deck, draft_deck
+from razbiram_screen_to_learn.draft import check_deck, draft_deck, finalize_deck
 from razbiram_screen_to_learn.export import TARGET_PROFILE
 from razbiram_screen_to_learn.pipeline import LIVE_CAPABILITIES, process_markup, process_text
 
@@ -96,6 +96,35 @@ class TestDraft:
         assert drafted["correctAnswer"] == ""
         assert not any(option["isCorrect"] for option in drafted["options"])
         assert check_deck(draft_deck(result.document).deck, capabilities=LIVE_CAPABILITIES)
+
+    def test_every_card_carries_its_status_inside_the_json(self, unevidenced) -> None:
+        """The file has to say what is missing, not only the screen that produced it.
+
+        A downloaded draft travels: to a text editor, to another machine, to tomorrow. A status
+        that lives only in the studio is lost at the first of those, and the person is left with a
+        deck of questions and no way to tell which ones still need an answer.
+        """
+        deck = draft_deck(unevidenced.document).deck
+        assert deck["status"] == "draft"
+        assert deck["meta"]["review"]["needsAnswer"] == len(deck["cards"])
+        for card in deck["cards"]:
+            assert card["review"]["status"] == "needs-answer"
+            assert card["review"]["answered"] is False
+            assert card["review"]["reasons"], "a status without a reason is not actionable"
+
+    def test_a_ready_card_says_so(self) -> None:
+        result = process_markup(FIXTURE.read_text(encoding="utf-8"))
+        deck = draft_deck(result.document).deck
+        assert deck["meta"]["review"]["needsAnswer"] == 0
+        assert all(card["review"]["status"] == "ready" for card in deck["cards"])
+
+    def test_finalising_strips_the_working_notes(self) -> None:
+        result = process_markup(FIXTURE.read_text(encoding="utf-8"))
+        cleaned = finalize_deck(draft_deck(result.document).deck)
+        assert "status" not in cleaned
+        assert "review" not in cleaned["meta"]
+        assert all("review" not in card for card in cleaned["cards"])
+        assert check_deck(cleaned, capabilities=LIVE_CAPABILITIES) == []
 
     def test_the_draft_carries_the_same_envelope_as_the_export(self) -> None:
         """Metadata may not change on the way through the editor."""

@@ -47,7 +47,7 @@ const BLOCKED = [
 describe("ExportPanel", () => {
   beforeEach(() => {
     checkDeck.mockReset();
-    checkDeck.mockResolvedValue({ ok: false, errors: ["card q-0002: mark exactly one correct option"] });
+    checkDeck.mockResolvedValue({ ok: false, errors: ["card q-0002: mark exactly one correct option"], deck: null });
   });
 
   it("shows the JSON without anyone asking for it", () => {
@@ -93,7 +93,7 @@ describe("ExportPanel", () => {
   });
 
   it("allows the download once the backend clears it", async () => {
-    checkDeck.mockResolvedValue({ ok: true, errors: [] });
+    checkDeck.mockResolvedValue({ ok: true, errors: [], deck: DECK });
     render(
       <ExportPanel
         exportInfo={exportInfo({ deck: null, blocked: BLOCKED, blockedCardIds: ["c-77"] })}
@@ -102,6 +102,19 @@ describe("ExportPanel", () => {
     );
     const download = screen.getByRole("button", { name: /download export json/i });
     await waitFor(() => expect((download as HTMLButtonElement).disabled).toBe(false));
+  });
+
+  it("lets a person take the questions away even when nothing is exportable", () => {
+    // The worst case still has to produce a file: the draft carries each card's status in the
+    // JSON, so the work can be finished in any editor rather than being trapped behind the gate.
+    render(
+      <ExportPanel
+        exportInfo={exportInfo({ deck: null, blocked: BLOCKED, blockedCardIds: ["c-77"] })}
+        deckTitle="clauses"
+      />,
+    );
+    const draft = screen.getByRole("button", { name: /download draft json/i }) as HTMLButtonElement;
+    expect(draft.disabled).toBe(false);
   });
 
   it("offers the blocked cards alongside a partial export rather than burying them", () => {
