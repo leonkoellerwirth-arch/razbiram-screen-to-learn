@@ -50,5 +50,21 @@
 # A marked answer that fails the verdict can no longer be source-verified. The lines are the two
 # script tests, the furniture and letter-ratio checks, and the fold that repairs what is
 # unambiguous while leaving the rest reported.
+# 2026-07-27 (fourth) — SRC_LOC_MAX 4180 -> 4300. `vision.py`: a third reading of a page, from a
+# local vision-OCR model over loopback ollama, plus the score that decides when it wins.
+#
+# Argued in its own right, as the note above demands. The reason is a measured wrong answer, not a
+# preference for newer tooling: on `fixtures/images/quiz.png` tesseract drops the leading digit of
+# question 2, the metals block inherits its neighbour's number, and the key row "2. A, C" binds
+# elsewhere — the card exports "Iron" alone, at tier source-verified, unblocked. No post-processing
+# recovers a digit that was never recognised, which is why this is a reader and not a repair.
+#
+# Both readings find three answerable questions, so `usable_blocks` cannot separate them. The lines
+# bought are therefore two things, not one: the reader itself, and `collided_indices` — the count
+# of answerable blocks claiming a number another already claimed, which is what a lost digit looks
+# like from above and is the only signal that ranked the correct reading first.
+#
+# It buys no dependency: urllib and base64 are stdlib, and absent ollama the reader returns "" and
+# the tesseract readings decide alone. A machine without a model is exactly as capable as before.
 DOC_TOKENS_MAX=11870
-SRC_LOC_MAX=4180
+SRC_LOC_MAX=4300
