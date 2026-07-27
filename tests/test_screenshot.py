@@ -6,6 +6,7 @@ them so a later change has to argue with the evidence rather than with taste.
 
 from __future__ import annotations
 
+from razbiram_screen_to_learn import screenshot
 from razbiram_screen_to_learn.layout import Box, Line, Word, size_clusters, to_lines, words_from_tsv
 from razbiram_screen_to_learn.screenshot import (
     Band,
@@ -173,3 +174,40 @@ def test_size_clusters_separate_a_heading_from_body_text() -> None:
 
 def test_size_clusters_of_a_uniform_page_collapse_to_one() -> None:
     assert len(size_clusters([line("body", size=30) for _ in range(10)])) == 1
+
+
+class TestRereadingEmphasisedRows:
+    """The row that carries the answer is the row OCR reads worst.
+
+    Measured on a real practice assessment: of fourteen exported cards, four carried a mangled
+    correct answer, and every one of them was the tinted row — "Therei h thi Sprint 0 in 5" for
+    "There is no such thing as Sprint 0 in Scrum". Re-reading the row alone fixes it; these tests
+    pin the two judgements that decide whether a re-read is used at all.
+    """
+
+    def test_a_cleaner_reading_replaces_a_mangled_one(self) -> None:
+        assert screenshot._reads_better(
+            "There is no such thing as Sprint 0 in Scrum", "Therei h thi Sprint 0 in 5"
+        )
+
+    def test_a_worse_reading_is_refused(self) -> None:
+        assert not screenshot._reads_better("Sprint", "There is no such thing as Sprint 0")
+        assert not screenshot._reads_better("", "There is no such thing as Sprint 0")
+
+    def test_latin_text_beats_a_homoglyph_reading(self) -> None:
+        """The observed corruption: Latin letters swapped for their Cyrillic lookalikes."""
+        homoglyphs = "То тападе complexity"
+        assert screenshot._reads_better("To manage complexity", homoglyphs)
+
+    def test_the_widget_is_dropped_from_a_re_read_row(self) -> None:
+        assert screenshot._without_widget("@X There is no such thing") == "There is no such thing"
+        assert screenshot._without_widget("6. To manage complexity") == "To manage complexity"
+        assert screenshot._without_widget("JD None of the above") == "None of the above"
+        assert screenshot._without_widget("№ False") == "False"
+
+    def test_a_real_two_letter_word_survives(self) -> None:
+        """The strip must not become the corruption it exists to remove."""
+        assert screenshot._without_widget("To manage complexity") == "To manage complexity"
+        assert screenshot._without_widget("If a product has been delivered") == (
+            "If a product has been delivered"
+        )

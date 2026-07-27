@@ -33,5 +33,13 @@
 # Docs: the README now carries a worked example — one quiz with and without its answer key, with
 # the real JSON and the real gate messages — because a public tool that never shows its output
 # asks a reader to take it on faith. BIBLE and HANDOFF grew by this session's entries.
+#
+# 2026-07-27 (second) — SRC_LOC_MAX 3831 -> 3920. One capability: re-reading an emphasised row on
+# its own, cropped out of the coloured box that defeated the page-wide pass. It is not a tweak —
+# on a real practice assessment four of fourteen exported cards carried a mangled correct answer
+# ("Therei h thi Sprint 0 in 5"), and every one of them was the tinted row, because the tint is
+# what marks the answer. Thirteen of fourteen now read as clean prose. The lines bought are the
+# crop, the two judgements that accept or refuse a re-read, and the widget strip that must not
+# eat a real two-letter word.
 DOC_TOKENS_MAX=11870
-SRC_LOC_MAX=3831
+SRC_LOC_MAX=3920

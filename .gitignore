@@ -17,3 +17,7 @@ test-results/
 .razbiram-screen-to-learn/
 captures/
 evidence/
+
+# Third-party study material dropped in for diagnosis. It is someone else's practice assessment;
+# this repo is public and MIT, so its questions may not be committed here (BIBLE invariant 9).
+fixtures/images/Professional-Scrum-Master-*

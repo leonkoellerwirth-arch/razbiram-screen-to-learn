@@ -28,7 +28,9 @@ from __future__ import annotations
 
 import re
 import statistics
+import tempfile
 from dataclasses import dataclass
+from pathlib import Path
 
 from razbiram_screen_to_learn.layout import Box, Line, read_lines, size_clusters
 from razbiram_screen_to_learn.textseg import AnswerKey, ParsedLine, RawBlock
@@ -198,10 +200,140 @@ def marking_bands(bands: list[Band], options: list[Line]) -> list[Band]:
     return [b for b in on_answers if b.channel == ranked[0][0]]
 
 
-def _parsed(line: Line, *, marked: bool, kind: str) -> ParsedLine:
-    """Present a geometric line as the lexical one downstream already understands."""
-    text = line.text
-    if kind == "option" and _is_widget(line):
+#: Pillow's high-quality downsample/upsample filter, looked up once so the import stays local.
+def _lanczos():
+    from PIL import Image
+
+    return Image.Resampling.LANCZOS
+
+
+#: How much padding to leave around a row when re-reading it, as a fraction of its height. Enough
+#: to keep descenders and the odd accent, little enough to leave the neighbouring rows out.
+REREAD_PAD = 0.35
+
+#: Re-read at this scale. Tesseract is trained on roughly 300-dpi text; a screenshot row is far
+#: smaller, and upscaling before recognition is the cheapest accuracy the pipeline can buy.
+REREAD_SCALE = 3
+
+
+def _latin_ratio(text: str) -> float:
+    """Share of a row's letters that are plain ASCII letters.
+
+    The failure this measures is specific and observed: on a tinted row tesseract returns Cyrillic
+    homoglyphs and merged words where the page says English — "To manage complexity" came back
+    with Cyrillic TE and O in place of the Latin ones, and its second word joined into a
+    non-word. The text is not empty, it is *wrong*, so nothing downstream notices.
+    """
+    letters = [c for c in text if c.isalpha()]
+    if not letters:
+        return 0.0
+    return sum(1 for c in letters if c.isascii()) / len(letters)
+
+
+def _reads_better(candidate: str, current: str) -> bool:
+    """Whether a re-read row should replace what the page-wide pass produced."""
+    candidate, current = candidate.strip(), current.strip()
+    if len(candidate) < 3:
+        return False
+    if _latin_ratio(candidate) > _latin_ratio(current) + 0.05:
+        return True
+    # Same script quality: prefer the reading that recovered more words, which is what a merged
+    # `Assoonasa` or a truncated `Therei h thi` costs.
+    return _latin_ratio(candidate) >= _latin_ratio(current) and len(candidate.split()) > len(
+        current.split()
+    )
+
+
+def reread_marked_rows(
+    image, lines: list[Line], marks: list[Band], *, left: int, right: int
+) -> dict[int, str]:
+    """Read every emphasised row again, alone, away from its own chrome.
+
+    The measured problem (module docstring, finding 3): a row inside a coloured, bordered box
+    defeats tesseract's page layout analysis, so the emphasised row reads worst — and on a results
+    page the emphasised row is the *correct answer*. Of fourteen cards exported from a real
+    practice assessment, four carried a mangled correct answer and every one of them was the
+    tinted row.
+
+    Cropping the row out of the page removes the box that confused the layout pass; upscaling gives
+    the recogniser the pixels it expects. The result is accepted only when it reads better than
+    what we already had, so a failed re-read costs nothing.
+
+    The crop spans the whole content column, not the line's own box: that box was measured by the
+    pass that misread the row, so trusting its right edge cuts the sentence off exactly where the
+    original reading gave up ("There is no such thing as Sprint 0 in Sc").
+    """
+    from razbiram_screen_to_learn.ocr import available_models, run_tesseract
+
+    marked = [line for line in lines if any(band.contains(line.box) for band in marks)]
+    if not marked:
+        return {}
+
+    models = "+".join(available_models()) or "eng"
+    width, height = image.size
+    out: dict[int, str] = {}
+
+    with tempfile.TemporaryDirectory() as tmp:
+        crop_path = Path(tmp) / "row.png"
+        for line in marked:
+            pad = max(2, int(line.box.height * REREAD_PAD))
+            box = (
+                max(0, min(left, line.box.left) - pad),
+                max(0, line.box.top - pad),
+                min(width, max(right, line.box.right) + pad),
+                min(height, line.box.bottom + pad),
+            )
+            if box[2] - box[0] < 8 or box[3] - box[1] < 8:
+                continue
+            crop = image.crop(box)
+            crop = crop.resize((crop.width * REREAD_SCALE, crop.height * REREAD_SCALE), _lanczos())
+            crop.convert("L").save(crop_path)
+            # PSM 7: this crop is one line of text and nothing else — exactly the assumption the
+            # page-wide pass could not make.
+            text = " ".join(run_tesseract(crop_path, models, 7).split())
+            if text and _reads_better(text, line.text):
+                out[line.top] = text
+    return out
+
+
+#: A re-read crop still contains the row's widget, and tesseract renders it as a short nonsense
+#: token at the front: "JD", "@X", "6.". The page-wide pass drops it by confidence, which a crop
+#: does not report per token — so it is dropped by shape instead, and only when what follows is
+#: still a sentence.
+LEADING_WIDGET_RE = re.compile(r"^(\S{1,2})\s+(?=\S)")
+
+
+def _without_widget(text: str) -> str:
+    """Drop a leading widget artefact, and only that.
+
+    The distinction that matters: "@X", "6.", "JD" and the numero sign are the toggle; "To manage
+    complexity" and "If a product..." open with a real two-letter word. A token counts as the
+    widget when it carries something that is not a letter, or is two capitals in front of an
+    ordinary word — never on length alone, because stripping "To" off an answer is a silent
+    corruption of exactly the kind this whole re-read exists to remove.
+    """
+    match = LEADING_WIDGET_RE.match(text)
+    if not match:
+        return text
+    token, rest = match.group(1), text[match.end() :]
+    if not rest:
+        return text
+    if not token.isalpha():
+        return rest
+    following = rest.split(maxsplit=1)[0]
+    if token.isupper() and not following.isupper():
+        return rest
+    return text
+
+
+def _parsed(line: Line, *, marked: bool, kind: str, override: str | None = None) -> ParsedLine:
+    """Present a geometric line as the lexical one downstream already understands.
+
+    ``override`` is a better reading of the same row from `reread_marked_rows`; it replaces the
+    words but never the geometry, so everything downstream still lines up with the page.
+    """
+    text = _without_widget(override) if override else line.text
+    if kind == "option" and override is None and _is_widget(line):
         # Drop the unreadable widget token; it is furniture, not part of the answer.
         text = " ".join(word.text for word in line.words[1:]).strip() or line.text
     # Some widgets OCR as two tokens ("@ |"); a lone separator left behind is still furniture.
@@ -231,6 +363,8 @@ def blocks_from_image(data: bytes, suffix: str) -> tuple[list[RawBlock], AnswerK
     floor = choice_size * 0.85
 
     bands: list[Band] = []
+    image = None
+    column_left, column_right = 0, 0
     try:
         from io import BytesIO
 
@@ -245,6 +379,16 @@ def blocks_from_image(data: bytes, suffix: str) -> tuple[list[RawBlock], AnswerK
 
     option_lines = [line for line in lines if floor <= line.size < midpoint]
     marks = marking_bands(bands, option_lines)
+
+    # The emphasised rows are the ones the page-wide pass reads worst, and they are the answers.
+    rereads: dict[int, str] = {}
+    if marks and image is not None:
+        try:
+            rereads = reread_marked_rows(
+                image, option_lines, marks, left=column_left, right=column_right
+            )
+        except Exception:
+            rereads = {}
 
     blocks: list[RawBlock] = []
     current: RawBlock | None = None
@@ -271,7 +415,9 @@ def blocks_from_image(data: bytes, suffix: str) -> tuple[list[RawBlock], AnswerK
 
         if _is_widget(line) or not current.option_lines:
             marked = any(band.contains(line.box) for band in marks)
-            current.option_lines.append(_parsed(line, marked=marked, kind="option"))
+            current.option_lines.append(
+                _parsed(line, marked=marked, kind="option", override=rereads.get(line.top))
+            )
         else:
             # A wrapped continuation belongs to the choice above it.
             previous = current.option_lines[-1]
