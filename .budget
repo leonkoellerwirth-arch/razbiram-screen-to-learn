@@ -66,5 +66,22 @@
 #
 # It buys no dependency: urllib and base64 are stdlib, and absent ollama the reader returns "" and
 # the tesseract readings decide alone. A machine without a model is exactly as capable as before.
+# 2026-07-27 (fifth) — SRC_LOC_MAX 4300 -> 4450. The second raise for the same capability today,
+# which the note above says should not become a habit; it is here because using the reader on a
+# real document found what the fixture could not.
+#
+# Banding (`vision.band_bounds`, `is_blank_row`, `_bands`). A 2500x28662 assessment read whole came
+# back with "Select that one" where the page prints "Select all that apply" — a multiple-select
+# question silently turned single-choice — plus "Definition of Reedy" and "Name of the above". The
+# same model, given the same page in 1850px bands, returned all three verbatim and found all twenty
+# questions where the previous reading found fourteen. Cuts land on background rows, so no text is
+# transcribed twice and nothing downstream has to dedupe.
+#
+# `marks_correctness` and `positional_marker` are the two things using it taught. The first stops a
+# sixteen-band read that could not have won: a page that marks its answers in colour carries the
+# correctness a transcript cannot, so the reading that already holds the answers is not displaced —
+# 103s instead of 8m26s on that document, with the same nineteen cards. The second is a crash:
+# `LATIN_IDS[i]` raised IndexError on a block of thirty options, losing every other question in the
+# upload.
 DOC_TOKENS_MAX=11870
-SRC_LOC_MAX=4300
+SRC_LOC_MAX=4450

@@ -1,0 +1,695 @@
+{
+  "schemaId": "studywithme-bg.learncard.v1",
+  "deckKey": "professional-scrum-master-psm-i-practice-red-tangerine-20",
+  "bookKey": null,
+  "meta": {
+    "title": {
+      "en": "Professional Scrum Master (PSM I) Practice Assessment — Red Tangerine"
+    },
+    "description": {
+      "en": "Twenty practice-assessment questions transcribed from the supplied result screenshot. The original answer options, correct-answer markings and available grey-box explanations are preserved."
+    },
+    "level": "PSM I",
+    "tags": [
+      "scrum",
+      "psm-i",
+      "scrum-master",
+      "practice-assessment",
+      "red-tangerine"
+    ],
+    "difficulty": "intermediate",
+    "estimatedMinutes": 20,
+    "cardCount": 20,
+    "languages": {
+      "source": "en",
+      "target": "en"
+    },
+    "source": {
+      "kind": "image-upload",
+      "publisher": "Red Tangerine",
+      "referenceUrl": "https://redtangerine.org/professional-scrum-master-psm-i-practice-assessment/",
+      "rightsBasis": "user-provided-reference"
+    }
+  },
+  "cards": [
+    {
+      "cardId": "q-0001",
+      "type": "mcq",
+      "sourceId": "red-tangerine-psm1-q01",
+      "question": {
+        "en": "#1. Which of the following are part of the Scrum framework?"
+      },
+      "instruction": {
+        "en": "Select all that apply."
+      },
+      "correctAnswer": [
+        "None of the above"
+      ],
+      "options": [
+        {
+          "text": "Velocity",
+          "isCorrect": false
+        },
+        {
+          "text": "User Stories",
+          "isCorrect": false
+        },
+        {
+          "text": "Story Points",
+          "isCorrect": false
+        },
+        {
+          "text": "Definition of Ready",
+          "isCorrect": false
+        },
+        {
+          "text": "None of the above",
+          "isCorrect": true
+        }
+      ],
+      "explanation": {
+        "en": "Scrum is a lightweight framework with various processes, techniques and methods that can be employed within the framework, such as the use of user stories and story points."
+      },
+      "scoring": {
+        "mode": "multiple-select",
+        "points": 1
+      }
+    },
+    {
+      "cardId": "q-0002",
+      "type": "mcq",
+      "sourceId": "red-tangerine-psm1-q02",
+      "question": {
+        "en": "#2. What is the purpose of Sprint 0?"
+      },
+      "correctAnswer": "There is no such thing as Sprint 0 in Scrum",
+      "options": [
+        {
+          "text": "For the Scrum Team to produce the first version of the ordered, sized Product Backlog",
+          "isCorrect": false
+        },
+        {
+          "text": "For the Developers to carry out a feasibility analysis of the requirements so that they can plan and estimate more accurately",
+          "isCorrect": false
+        },
+        {
+          "text": "For the Product Owner to build a business case that demonstrates the return on investment for the product development",
+          "isCorrect": false
+        },
+        {
+          "text": "There is no such thing as Sprint 0 in Scrum",
+          "isCorrect": true
+        }
+      ],
+      "scoring": {
+        "mode": "single-best-answer",
+        "points": 1
+      }
+    },
+    {
+      "cardId": "q-0003",
+      "type": "mcq",
+      "sourceId": "red-tangerine-psm1-q03",
+      "question": {
+        "en": "#3. What place does Project Management have in Scrum?"
+      },
+      "correctAnswer": "Although no role of Project Manager is recognised in Scrum, Project Management skills may be needed by the Scrum Team, and the competencies may be carried out by Scrum Masters, Developers or Product Owners",
+      "options": [
+        {
+          "text": "Scrum does not recognise Project Managers; Project Management skills and the Project Manager role is obsolete",
+          "isCorrect": false
+        },
+        {
+          "text": "Although no role of Project Manager is recognised in Scrum, Project Management skills may be needed by the Scrum Team, and the competencies may be carried out by Scrum Masters, Developers or Product Owners",
+          "isCorrect": true
+        },
+        {
+          "text": "Project Managers are required in a separate PMO function. They create the Sprint by Sprint plan, the end of Sprint report, and ensure that the Scrum Master, Developers and Product Owner are fulfilling their duties",
+          "isCorrect": false
+        },
+        {
+          "text": "The Scrum Master is an Agile Project Manager",
+          "isCorrect": false
+        }
+      ],
+      "scoring": {
+        "mode": "single-best-answer",
+        "points": 1
+      }
+    },
+    {
+      "cardId": "q-0004",
+      "type": "mcq",
+      "sourceId": "red-tangerine-psm1-q04",
+      "question": {
+        "en": "#4. Scrum Masters are described as “True Leaders”. What does this mean?"
+      },
+      "correctAnswer": "They lead by serving the needs of the Scrum Team and the larger organisation",
+      "options": [
+        {
+          "text": "They lead by serving the needs of the Scrum Team and the larger organisation",
+          "isCorrect": true
+        },
+        {
+          "text": "The entire organisation must respect their decisions",
+          "isCorrect": false
+        },
+        {
+          "text": "They lead all of the Scrum events",
+          "isCorrect": false
+        },
+        {
+          "text": "They are ultimately accountable for the success of Scrum implementations and the success of products",
+          "isCorrect": false
+        }
+      ],
+      "scoring": {
+        "mode": "single-best-answer",
+        "points": 1
+      }
+    },
+    {
+      "cardId": "q-0005",
+      "type": "mcq",
+      "sourceId": "red-tangerine-psm1-q05",
+      "question": {
+        "en": "#5. If a product has been delivered according to the originally planned timelines, within budget and all “must have scope” delivered, it can be deemed a success."
+      },
+      "correctAnswer": "False",
+      "options": [
+        {
+          "text": "True",
+          "isCorrect": false
+        },
+        {
+          "text": "False",
+          "isCorrect": true
+        }
+      ],
+      "explanation": {
+        "en": "Meeting customer’s and user’s needs, their desired outcomes and solving their problems in a way that results in an overall positive impact for the organisation is a far better measure of success."
+      },
+      "scoring": {
+        "mode": "single-best-answer",
+        "points": 1
+      }
+    },
+    {
+      "cardId": "q-0006",
+      "type": "mcq",
+      "sourceId": "red-tangerine-psm1-q06",
+      "question": {
+        "en": "#6. When is the Increment released?"
+      },
+      "correctAnswer": "As soon as a Product Backlog item meets the Definition of Done, an Increment is born and the decision to release it can be made",
+      "options": [
+        {
+          "text": "After it has been reviewed and signed off as “Done” in the Sprint Review",
+          "isCorrect": false
+        },
+        {
+          "text": "Following the user acceptance testing phase that follows the Sprint after the Increment was Done",
+          "isCorrect": false
+        },
+        {
+          "text": "As soon as a Product Backlog item meets the Definition of Done, an Increment is born and the decision to release it can be made",
+          "isCorrect": true
+        },
+        {
+          "text": "The decision to release an Increment is at the sole discretion of the Product Owner, regardless of the state of the Increment",
+          "isCorrect": false
+        }
+      ],
+      "explanation": {
+        "en": "Multiple Increments may be created and released during a Sprint. The Sprint Review should never be considered as a gate to releasing value. For an Increment to be releasable it must meet the Definition of Done."
+      },
+      "scoring": {
+        "mode": "single-best-answer",
+        "points": 1
+      }
+    },
+    {
+      "cardId": "q-0007",
+      "type": "mcq",
+      "sourceId": "red-tangerine-psm1-q07",
+      "question": {
+        "en": "#7. Should the Product Owner attend the Sprint Retrospective?"
+      },
+      "correctAnswer": "Yes – they are part of the Scrum Team",
+      "options": [
+        {
+          "text": "Yes – they are part of the Scrum Team",
+          "isCorrect": true
+        },
+        {
+          "text": "No – their presence might result in the rest of the Scrum Team being uncomfortable in being open about their challenges, thus transparency is reduced",
+          "isCorrect": false
+        },
+        {
+          "text": "It is up to the Developers to decide",
+          "isCorrect": false
+        }
+      ],
+      "explanation": {
+        "en": "The Product Owner is part of the Scrum Team and as such shares in the Scrum Team’s successes, shortcomings and improvement actions. If the Developers are uncomfortable with the Product Owner being in the Sprint Retrospective, this should be considered as an impediment to be resolved."
+      },
+      "scoring": {
+        "mode": "single-best-answer",
+        "points": 1
+      }
+    },
+    {
+      "cardId": "q-0008",
+      "type": "mcq",
+      "sourceId": "red-tangerine-psm1-q08",
+      "question": {
+        "en": "#8. The ideal Scrum Team is one that is;"
+      },
+      "correctAnswer": "Cross-functional, meaning that it has all of the skills needed to turn Product Backlog items into Done Increments on the team",
+      "options": [
+        {
+          "text": "Cross-functional, meaning that it has all of the skills needed to turn Product Backlog items into Done Increments on the team",
+          "isCorrect": true
+        },
+        {
+          "text": "Made up of a Scrum Master, a Product Owner, a Business Analyst and one tester for every programmer",
+          "isCorrect": false
+        },
+        {
+          "text": "Fully trained and experts in Scrum theory",
+          "isCorrect": false
+        },
+        {
+          "text": "Made up of team members that get on with the job and do not moan about “impediments slowing them down”",
+          "isCorrect": false
+        }
+      ],
+      "scoring": {
+        "mode": "single-best-answer",
+        "points": 1
+      }
+    },
+    {
+      "cardId": "q-0009",
+      "type": "mcq",
+      "sourceId": "red-tangerine-psm1-q09",
+      "question": {
+        "en": "#9. Why should an organisation adopt Scrum?"
+      },
+      "correctAnswer": "To manage complexity, maximize value, optimize predictability and control risk",
+      "options": [
+        {
+          "text": "To increase speed, productivity and efficiency",
+          "isCorrect": false
+        },
+        {
+          "text": "To manage complexity, maximize value, optimize predictability and control risk",
+          "isCorrect": true
+        },
+        {
+          "text": "To deliver project scope, on-time and within budget",
+          "isCorrect": false
+        },
+        {
+          "text": "To eliminate complexity, maximise throughput and reduce costs",
+          "isCorrect": false
+        }
+      ],
+      "explanation": {
+        "en": "From the Scrum Guide… “Scrum employs an iterative, incremental approach to optimize predictability and to control risk”."
+      },
+      "scoring": {
+        "mode": "single-best-answer",
+        "points": 1
+      }
+    },
+    {
+      "cardId": "q-0010",
+      "type": "mcq",
+      "sourceId": "red-tangerine-psm1-q10",
+      "question": {
+        "en": "#10. When there is a lot of uncertainty, for example about user needs, market potential, viability of the solution, the best way to proceed is to;"
+      },
+      "correctAnswer": "Collaborate as a Scrum Team on how to learn and reduce risk as quickly as possible while still producing a “Done”, valuable, usable Increment each Sprint",
+      "options": [
+        {
+          "text": "Postpone sprinting while further analysis is carried out and a more comprehensive design is created",
+          "isCorrect": false
+        },
+        {
+          "text": "Collaborate as a Scrum Team on how to learn and reduce risk as quickly as possible while still producing a “Done”, valuable, usable Increment each Sprint",
+          "isCorrect": true
+        },
+        {
+          "text": "Keep a risk register and assign the Scrum Master to manage it",
+          "isCorrect": false
+        },
+        {
+          "text": "Have the Product Owner make a decision about what to do, so that resources are kept utilised",
+          "isCorrect": false
+        }
+      ],
+      "explanation": {
+        "en": "Scrum is designed for complex, uncertain environments. The regular cadence of Sprints and the feedback loops given by the Scrum events enable iterative and incremental learning, enabling options for how to proceed to emerge."
+      },
+      "scoring": {
+        "mode": "single-best-answer",
+        "points": 1
+      }
+    },
+    {
+      "cardId": "q-0011",
+      "type": "mcq",
+      "sourceId": "red-tangerine-psm1-q11",
+      "question": {
+        "en": "#11. Why is Product Backlog refinement not a Scrum event?"
+      },
+      "correctAnswer": "Scrum does not prescribe a method, regular cadence, attendees or timebox for how Scrum Teams carry out Product Backlog refinement",
+      "options": [
+        {
+          "text": "Scrum does not prescribe a method, regular cadence, attendees or timebox for how Scrum Teams carry out Product Backlog refinement",
+          "isCorrect": true
+        },
+        {
+          "text": "Product Backlog refinement is part of the Sprint Planning event",
+          "isCorrect": false
+        },
+        {
+          "text": "Having six events in Scrum is too many for most people to remember",
+          "isCorrect": false
+        },
+        {
+          "text": "Product Backlog refinement is a Scrum event",
+          "isCorrect": false
+        }
+      ],
+      "scoring": {
+        "mode": "single-best-answer",
+        "points": 1
+      }
+    },
+    {
+      "cardId": "q-0012",
+      "type": "mcq",
+      "sourceId": "red-tangerine-psm1-q12",
+      "question": {
+        "en": "#12. During a Sprint, the Developers determine that they will not be able to complete all of the items forecasted. What should the Scrum Team do?"
+      },
+      "correctAnswer": "Renegotiate the scope, with a focus on how to still meet the Sprint Goal",
+      "options": [
+        {
+          "text": "Renegotiate the scope, with a focus on how to still meet the Sprint Goal",
+          "isCorrect": true
+        },
+        {
+          "text": "The Developers should swarm on the items most likely to be finished so that there is something to show at the Sprint Review",
+          "isCorrect": false
+        },
+        {
+          "text": "Abandon the current Sprint and start a new one",
+          "isCorrect": false
+        },
+        {
+          "text": "Skip testing, and catch up with it in the next Sprint",
+          "isCorrect": false
+        },
+        {
+          "text": "Drop the Sprint Retrospective and Daily Scrum so that the Developers have more time to get the work done",
+          "isCorrect": false
+        }
+      ],
+      "explanation": {
+        "en": "During the Sprint, scope may be negotiated between the Developers and Product Owner as more is learned."
+      },
+      "scoring": {
+        "mode": "single-best-answer",
+        "points": 1
+      }
+    },
+    {
+      "cardId": "q-0013",
+      "type": "mcq",
+      "sourceId": "red-tangerine-psm1-q13",
+      "question": {
+        "en": "#13. Which of the following might be consequences of having product teams that are given features to deliver/implement?"
+      },
+      "instruction": {
+        "en": "Select all that apply."
+      },
+      "correctAnswer": [
+        "Potential creativity and innovation residing in the team is wasted",
+        "The team could potentially come up with better solutions to the problems to be solved",
+        "Team members may feel less autonomy, mastery and purpose with regards to their work",
+        "Teams might end up being measured and judged on output rather than outcomes"
+      ],
+      "options": [
+        {
+          "text": "Potential creativity and innovation residing in the team is wasted",
+          "isCorrect": true
+        },
+        {
+          "text": "The team could potentially come up with better solutions to the problems to be solved",
+          "isCorrect": true
+        },
+        {
+          "text": "Team members may feel less autonomy, mastery and purpose with regards to their work",
+          "isCorrect": true
+        },
+        {
+          "text": "Teams might end up being measured and judged on output rather than outcomes",
+          "isCorrect": true
+        }
+      ],
+      "scoring": {
+        "mode": "multiple-select",
+        "points": 1
+      }
+    },
+    {
+      "cardId": "q-0014",
+      "type": "mcq",
+      "sourceId": "red-tangerine-psm1-q14",
+      "question": {
+        "en": "#14. Mature Scrum Teams can drop certain elements of Scrum such as the Daily Scrum and Sprint Retrospective when they feel they no longer add value"
+      },
+      "correctAnswer": "False",
+      "options": [
+        {
+          "text": "True",
+          "isCorrect": false
+        },
+        {
+          "text": "False",
+          "isCorrect": true
+        }
+      ],
+      "explanation": {
+        "en": "The Scrum Framework is immutable, while implementing parts of Scrum is possible, the result is not Scrum. Dropping Scrum events results in lost opportunities for inspection and adaptation and reduces transparency."
+      },
+      "scoring": {
+        "mode": "single-best-answer",
+        "points": 1
+      }
+    },
+    {
+      "cardId": "q-0015",
+      "type": "mcq",
+      "sourceId": "red-tangerine-psm1-q15",
+      "question": {
+        "en": "#15. How should the Sprint Backlog be ordered?"
+      },
+      "correctAnswer": "Scrum does not prescribe ordering of the Sprint Backlog",
+      "options": [
+        {
+          "text": "Scrum does not prescribe ordering of the Sprint Backlog",
+          "isCorrect": true
+        },
+        {
+          "text": "The ordering of Product Backlog items on the Sprint Backlog should be the same as they were when they were on the Product Backlog",
+          "isCorrect": false
+        },
+        {
+          "text": "By whatever the Developers say",
+          "isCorrect": false
+        },
+        {
+          "text": "By whatever the Product Owner says",
+          "isCorrect": false
+        }
+      ],
+      "scoring": {
+        "mode": "single-best-answer",
+        "points": 1
+      }
+    },
+    {
+      "cardId": "q-0016",
+      "type": "mcq",
+      "sourceId": "red-tangerine-psm1-q16",
+      "question": {
+        "en": "#16. How can a Scrum Team best improve its defect rate?"
+      },
+      "correctAnswer": "Test automation, peer review, gathering earlier feedback, getting closer to the end user are just a few options that the Scrum Team could try",
+      "options": [
+        {
+          "text": "Replace some of the team members with testing specialists",
+          "isCorrect": false
+        },
+        {
+          "text": "Introduce a hardening Sprint where the entire focus on the Sprint is spent on finding and fixing bugs",
+          "isCorrect": false
+        },
+        {
+          "text": "Introduce a “Definition of Ready” with rigorous criteria which ensures all requirements are captured in detail before the Developers start the work",
+          "isCorrect": false
+        },
+        {
+          "text": "Inspect the Definition of Done and make individual team members accountable for ensuring that different parts are fulfilled",
+          "isCorrect": false
+        },
+        {
+          "text": "Test automation, peer review, gathering earlier feedback, getting closer to the end user are just a few options that the Scrum Team could try",
+          "isCorrect": true
+        }
+      ],
+      "explanation": {
+        "en": "Defects are not just bugs in the product. A defect is anything that reduces the value of the product to a customer, user, or to the organization itself. Defects are generally things that don’t work as intended."
+      },
+      "scoring": {
+        "mode": "single-best-answer",
+        "points": 1
+      }
+    },
+    {
+      "cardId": "q-0017",
+      "type": "mcq",
+      "sourceId": "red-tangerine-psm1-q17",
+      "question": {
+        "en": "#17. Which of the following should be considered when crafting an effective goal?"
+      },
+      "correctAnswer": "It expresses a measurable desired outcome",
+      "options": [
+        {
+          "text": "Ensuring that it has a deadline for delivery",
+          "isCorrect": false
+        },
+        {
+          "text": "The exact scope that needs to be delivered is clear",
+          "isCorrect": false
+        },
+        {
+          "text": "It expresses a measurable desired outcome",
+          "isCorrect": true
+        },
+        {
+          "text": "It includes a projection of revenue increase when the goal is met",
+          "isCorrect": false
+        }
+      ],
+      "scoring": {
+        "mode": "single-best-answer",
+        "points": 1
+      }
+    },
+    {
+      "cardId": "q-0018",
+      "type": "mcq",
+      "sourceId": "red-tangerine-psm1-q18",
+      "question": {
+        "en": "#18. Who monitors the progress of work during a Sprint?"
+      },
+      "correctAnswer": "None of the above",
+      "options": [
+        {
+          "text": "The Scrum Master",
+          "isCorrect": false
+        },
+        {
+          "text": "The Product Owner",
+          "isCorrect": false
+        },
+        {
+          "text": "The Project Manager",
+          "isCorrect": false
+        },
+        {
+          "text": "The Lead Developer",
+          "isCorrect": false
+        },
+        {
+          "text": "None of the above",
+          "isCorrect": true
+        }
+      ],
+      "explanation": {
+        "en": "The Developers are accountable for managing, executing and monitoring the plan for the Sprint. This plan is made transparent in the Sprint Backlog."
+      },
+      "scoring": {
+        "mode": "single-best-answer",
+        "points": 1
+      }
+    },
+    {
+      "cardId": "q-0019",
+      "type": "mcq",
+      "sourceId": "red-tangerine-psm1-q19",
+      "question": {
+        "en": "#19. Stakeholders cannot agree on which product and feature ideas to focus on. Which of the following is most aligned with Scrum theory in how to proceed?"
+      },
+      "correctAnswer": "Take an empirical approach and test the value propositions of each, either through small experiments which may involve building small parts of functionality and gathering feedback",
+      "options": [
+        {
+          "text": "Take an empirical approach and test the value propositions of each, either through small experiments which may involve building small parts of functionality and gathering feedback",
+          "isCorrect": true
+        },
+        {
+          "text": "The Product Owner should decide based on their intuition and make a presentation to the stakeholders to justify their decisions",
+          "isCorrect": false
+        },
+        {
+          "text": "Escalate the impasse to higher management for a decision to be made at executive level",
+          "isCorrect": false
+        },
+        {
+          "text": "Use a weighted job short calculation and go with whatever the result is",
+          "isCorrect": false
+        }
+      ],
+      "scoring": {
+        "mode": "single-best-answer",
+        "points": 1
+      }
+    },
+    {
+      "cardId": "q-0020",
+      "type": "mcq",
+      "sourceId": "red-tangerine-psm1-q20",
+      "question": {
+        "en": "#20. Scrum Teams that focus on output and not outcomes may not be exhibiting which element of Scrum?"
+      },
+      "correctAnswer": "The Scrum value of courage to work on the right thing",
+      "options": [
+        {
+          "text": "Achieving the highest possible velocity",
+          "isCorrect": false
+        },
+        {
+          "text": "The Scrum value of courage to work on the right thing",
+          "isCorrect": true
+        },
+        {
+          "text": "Reaching the optimal “performing” state as a team",
+          "isCorrect": false
+        },
+        {
+          "text": "Celebrating what was achieved in the Sprint Review",
+          "isCorrect": false
+        }
+      ],
+      "scoring": {
+        "mode": "single-best-answer",
+        "points": 1
+      }
+    }
+  ]
+}

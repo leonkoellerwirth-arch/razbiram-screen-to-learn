@@ -29,6 +29,7 @@ import json
 import os
 import re
 import urllib.request
+from contextlib import suppress
 from functools import cache
 
 from razbiram_screen_to_learn.progress import (
@@ -60,6 +61,27 @@ DISCOVERY_TIMEOUT_S = 3.0
 
 #: A page can legitimately take a while on CPU.
 READ_TIMEOUT_S = 600.0
+
+#: Taller than this many times its width, a capture is a scroll, not a view. A vision model resizes
+#: what it is given to a fixed budget, so the taller the capture the smaller every glyph becomes.
+#: Measured on a 2500x28662 practice assessment: read whole, the model returned "Select that one"
+#: where the page prints "Select all that apply" — which would silently turn a multiple-select
+#: question into a single-choice card — plus "Definition of Reedy" and "Name of the above". Read in
+#: bands, the same model returned all three verbatim.
+TALL_RATIO = 2.0
+
+#: Target band height. 1850px was the measured-clean size on that capture; the point is not the
+#: number but that a band is a page-sized thing, which is what these models were trained on.
+BAND_HEIGHT = 1850
+
+#: How far a cut may move to land on a blank row instead of inside a question. Cutting at
+#: background rather than overlapping bands means no text is transcribed twice, so nothing
+#: downstream has to guess which of two readings of the same line to keep.
+SEEK_ROWS = 600
+
+#: Sampled columns per row, and the per-channel spread a row may have and still count as blank.
+ROW_SAMPLES = 64
+BLANK_TOLERANCE = 10
 
 _FENCE_RE = re.compile(r"^```[a-z]*\n?|\n?```$")
 
@@ -101,20 +123,108 @@ def installed_model() -> str | None:
     return None
 
 
+def is_blank_row(image, y: int) -> bool:
+    """Whether row ``y`` is one flat colour across the width — background, not content."""
+    width = image.width
+    step = max(1, width // ROW_SAMPLES)
+    columns = range(0, width, step)
+    for channel in range(3):
+        values = [image.getpixel((x, y))[channel] for x in columns]
+        if max(values) - min(values) > BLANK_TOLERANCE:
+            return False
+    return True
+
+
+def band_bounds(image) -> list[tuple[int, int]]:
+    """Where to cut a capture into page-sized bands, as ``(top, bottom)`` pairs.
+
+    A short image yields one band, which is the whole image and the same call as before. A tall one
+    is cut at background rows near each target height, so a question is never split across two
+    reads. When no blank row is within reach the cut falls at the target anyway: a band that starts
+    mid-question still reads its remaining lines correctly, and the segmenter downstream is built
+    for text that begins in the middle of something.
+    """
+    width, height = image.size
+    if height <= BAND_HEIGHT or height < width * TALL_RATIO:
+        return [(0, height)]
+
+    bounds: list[tuple[int, int]] = []
+    top = 0
+    while height - top > BAND_HEIGHT:
+        target = top + BAND_HEIGHT
+        cut = target
+        for offset in range(SEEK_ROWS):
+            for candidate in (target - offset, target + offset):
+                if top < candidate < height and is_blank_row(image, candidate):
+                    cut = candidate
+                    break
+            else:
+                continue
+            break
+        bounds.append((top, cut))
+        top = cut
+    bounds.append((top, height))
+    return bounds
+
+
+def _bands(data: bytes) -> list[bytes]:
+    """``data`` split into page-sized PNGs, or ``[data]`` when it needs no splitting."""
+    from io import BytesIO
+
+    from PIL import Image
+
+    image = Image.open(BytesIO(data)).convert("RGB")
+    bounds = band_bounds(image)
+    if len(bounds) == 1:
+        return [data]
+    bands = []
+    for top, bottom in bounds:
+        buffer = BytesIO()
+        image.crop((0, top, image.width, bottom)).save(buffer, format="PNG")
+        bands.append(buffer.getvalue())
+    return bands
+
+
 def recognize_image(data: bytes, *, on_progress: ProgressFn | None = None) -> str:
     """Transcribe ``data``, or return "" when no model is available or the call fails.
 
+    A tall capture is read in bands and the transcripts joined, because a scroll read whole comes
+    back subtly wrong rather than obviously empty — see ``TALL_RATIO``.
+
     Failure is silent by contract: this is one reading among several, and losing it must cost
-    nothing but itself. ``temperature`` is pinned to 0 so the same page reads the same way twice —
-    identifiers downstream are derived from content and may not drift between runs.
+    nothing but itself. A band that fails contributes nothing and the rest still read.
     """
     model = installed_model()
     if model is None:
         return ""
-    report(
-        on_progress,
-        ProgressEvent(stage=STAGE_READING, detail=f"Reading the image with {model}"),
-    )
+
+    bands = [data]
+    with suppress(Exception):
+        # Without Pillow, or on anything unreadable, the whole image is the single band.
+        bands = _bands(data)
+
+    transcripts = []
+    for index, band in enumerate(bands, start=1):
+        report(
+            on_progress,
+            ProgressEvent(
+                stage=STAGE_READING,
+                detail=f"Reading with {model}"
+                + (f" (band {index} of {len(bands)})" if len(bands) > 1 else ""),
+                index=index,
+                total=len(bands),
+            ),
+        )
+        transcripts.append(_transcribe(band, model))
+    return "\n\n".join(part for part in transcripts if part)
+
+
+def _transcribe(data: bytes, model: str) -> str:
+    """One call to the model. Returns "" on any failure, so one bad band never loses the rest.
+
+    ``temperature`` is pinned to 0 so the same page reads the same way twice — identifiers
+    downstream are derived from content and may not drift between runs.
+    """
     request = urllib.request.Request(
         f"{endpoint()}/api/chat",
         data=json.dumps(

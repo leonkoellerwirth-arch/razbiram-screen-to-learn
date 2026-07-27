@@ -279,6 +279,21 @@ def collided_indices(blocks: list[RawBlock]) -> int:
     return collisions
 
 
+def marks_correctness(blocks: list[RawBlock]) -> bool:
+    """Whether a reading found the page marking its own answers — a tint, a filled widget.
+
+    Material that marks by drawing carries its correctness in pixels, and a transcript is text: ask
+    a model to read such a page and it returns the words faithfully and the marking not at all.
+    Measured on a 2500x28662 practice assessment, where the drawn reading finds fourteen marked
+    options and the transcript none — so the model's better text would arrive with every answer
+    lost, and cost sixteen band reads to say so.
+
+    Reading them *together* — geometry for which row is marked, a model for what that row says — is
+    the open job. Until it exists, the reading that already holds the answers is not displaced.
+    """
+    return any(line.marked for block in blocks for line in block.option_lines)
+
+
 def reading_score(blocks: list[RawBlock]) -> tuple[int, int]:
     """Rank one reading of a page against another: more answerable, then fewer collisions.
 
@@ -327,9 +342,10 @@ def process_image(
     model_text = ""
     model_blocks: list[RawBlock] = []
     model_key: dict[int, list[str]] = {}
-    with suppress(Exception):
-        # Absent ollama this is "", and the readings above decide alone.
-        model_text = recognize_with_model(data, on_progress=on_progress)
+    if not marks_correctness(drawn_blocks):
+        with suppress(Exception):
+            # Absent ollama this is "", and the readings above decide alone.
+            model_text = recognize_with_model(data, on_progress=on_progress)
     if model_text:
         model_blocks, model_key = segment(model_text)
 

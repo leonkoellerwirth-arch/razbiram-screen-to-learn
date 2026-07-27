@@ -59,6 +59,19 @@ TRUE_FALSE_PAIRS: tuple[tuple[str, str], ...] = (
 
 LATIN_IDS = "abcdefghijklmnopqrstuvwxyz"
 
+
+def positional_marker(index: int) -> str:
+    """The letter an option would carry if the material had lettered it, or "" past the alphabet.
+
+    An answer key names single letters, so an option beyond Z can never be one a key selected — ""
+    matches nothing and that is the correct outcome. It still has to *be* something: a block with
+    more options than the alphabet has letters is a mis-segmentation, and a reader that crashes on
+    one loses every other question in the same upload. Observed on a transcript whose bullet lines
+    ran together into a single block of thirty-odd options.
+    """
+    return LATIN_IDS[index].upper() if index < len(LATIN_IDS) else ""
+
+
 #: Cyrillic letters that are visually identical to a Latin one. OCR picks whichever script its
 #: loaded models favour, so a key can read "А,С" (Cyrillic) while the options read "A)" "C)"
 #: (Latin) — the same glyphs, different code points, and no binding without folding them.
@@ -121,7 +134,7 @@ def resolve_answers(block: RawBlock, answer_key: AnswerKey) -> AnswerResolution:
         return AnswerResolution(letters=from_key, source="answer-key")
 
     marked = [
-        line.marker or LATIN_IDS[i].upper()
+        line.marker or positional_marker(i)
         for i, line in enumerate(block.option_lines)
         if line.marked and i < len(LATIN_IDS)
     ]
@@ -196,10 +209,10 @@ def build_card(
         review_reasons.append("no-answer-key")
 
     family_probe = [
-        (block.option_lines[i].marker or LATIN_IDS[i].upper()) for i in range(len(texts))
+        (block.option_lines[i].marker or positional_marker(i)) for i in range(len(texts))
     ]
     correct_flags = [
-        marker.upper() in wanted or LATIN_IDS[i].upper() in wanted
+        (bool(marker) and marker.upper() in wanted) or positional_marker(i) in wanted
         for i, marker in enumerate(family_probe)
     ]
     correct_count = sum(correct_flags)
