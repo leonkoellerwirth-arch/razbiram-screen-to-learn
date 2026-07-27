@@ -257,6 +257,38 @@ def usable_blocks(blocks: list[RawBlock]) -> int:
     return sum(1 for block in blocks if len(block.option_lines) >= 2 and block.question_lines)
 
 
+def collided_indices(blocks: list[RawBlock]) -> int:
+    """How many answerable blocks claim a number another answerable block already claimed.
+
+    Two questions printed under the same number is not something material does; it is what a
+    reading looks like after a digit was lost. The block still segments, still counts as usable
+    and still binds whatever the answer key holds under the number it inherited — so the failure
+    is silent and wrong rather than loud and empty, which is the worst shape it could take.
+
+    Counted separately from ``usable_blocks`` rather than folded into it, because the two say
+    different things: how much was found, and how much of it can be trusted to be where it says.
+    """
+    seen: set[int] = set()
+    collisions = 0
+    for block in blocks:
+        if len(block.option_lines) < 2 or not block.question_lines:
+            continue
+        if block.index in seen:
+            collisions += 1
+        seen.add(block.index)
+    return collisions
+
+
+def reading_score(blocks: list[RawBlock]) -> tuple[int, int]:
+    """Rank one reading of a page against another: more answerable, then fewer collisions.
+
+    Lexicographic on purpose. A reading that finds a question the other missed wins outright — a
+    card nobody extracted cannot be reviewed. Only between readings that found the same amount
+    does numbering integrity decide, and there it decides every time.
+    """
+    return (usable_blocks(blocks), -collided_indices(blocks))
+
+
 def process_image(
     data: bytes,
     suffix: str,
@@ -267,34 +299,53 @@ def process_image(
     on_progress: ProgressFn | None = None,
     **assemble_kwargs: object,
 ) -> PipelineResult:
-    """Read an image, choosing between the two ways a page can carry its structure.
+    """Read an image, choosing between the ways a page can carry its structure.
 
     Material that marks itself with letters ("A)", "B)") is read from the recognised text.
     Material that marks itself by drawing — a bigger question, a widget per choice, a tinted
-    correct row — is read from typography, geometry and colour. Which applies is decided by
-    **counting answerable blocks**, not by guessing from the file, so a page that carries both
+    correct row — is read from typography, geometry and colour. A local vision model, when one is
+    installed, offers a third reading of the same page. Which applies is decided by
+    **``reading_score``**, not by guessing from the file, so a page that carries both structures
     simply wins twice and a page that carries neither reports nothing rather than inventing it.
+
+    Ties go to the reading listed first, which is why the order below is the order of trust:
+    recognised text is the reading that always exists.
     """
     from razbiram_screen_to_learn.ocr import recognize_image
     from razbiram_screen_to_learn.screenshot import blocks_from_image
+    from razbiram_screen_to_learn.vision import recognize_image as recognize_with_model
 
     recognised = recognize_image(data, suffix, on_progress=on_progress)
-    text_blocks, answer_key = segment(recognised.text)
+    text_blocks, text_key = segment(recognised.text)
+    text = recognised.text
 
     drawn_blocks: list[RawBlock] = []
     with suppress(Exception):
         # A drawn page is the harder case; failing to read it must not lose the text reading.
         drawn_blocks, _ = blocks_from_image(data, suffix)
 
-    if usable_blocks(drawn_blocks) > usable_blocks(text_blocks):
-        blocks, answer_key = drawn_blocks, {}
-    else:
-        blocks = text_blocks
+    model_text = ""
+    model_blocks: list[RawBlock] = []
+    model_key: dict[int, list[str]] = {}
+    with suppress(Exception):
+        # Absent ollama this is "", and the readings above decide alone.
+        model_text = recognize_with_model(data, on_progress=on_progress)
+    if model_text:
+        model_blocks, model_key = segment(model_text)
+
+    # (blocks, answer key, the text to report). The drawn reading carries correctness inline
+    # rather than in a key section, so it brings no key of its own.
+    candidates = [
+        (text_blocks, text_key, text),
+        (drawn_blocks, {}, text),
+        (model_blocks, model_key, model_text),
+    ]
+    blocks, answer_key, text = max(candidates, key=lambda candidate: reading_score(candidate[0]))
 
     return _assemble(
         blocks,
         answer_key,
-        text=recognised.text,
+        text=text,
         title=title,
         source_kind="image-upload",
         evidence_kind="ocr",

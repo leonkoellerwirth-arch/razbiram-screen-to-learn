@@ -169,6 +169,19 @@ backend.
   `answerEvidenceTier` now drafts as unanswered. _Why it is in the register:_ structure is not
   evidence, and a pre-filled guess a person confirms is indistinguishable from a fabricated answer
   (invariant 1, reached through invariant 3).
+- **2026-07-27 — A local vision model may read a page; it still may not structure one.** The
+  2026-07-26 entry above measured *text* models restructuring OCR output and stands unchanged. This
+  is a different job: `vision.py` asks a vision-OCR model over loopback ollama for a transcript, and
+  that transcript enters `textseg`/`textcards` like any other reading. The seam is the same as every
+  reader's — one candidate, scored. _Why it is in the register:_ tesseract dropped the leading digit
+  of question 2 on the repo's own fixture, the metals block inherited its neighbour's number, and the
+  key row "2. A, C" exported as "Iron" alone at tier `source-verified`. A transcribed printed key is
+  evidence; an answer a model reasons out is not, which is why the prompt asks for text and never for
+  cards. Without ollama the reader returns nothing and costs nothing.
+- **2026-07-27 — Two answerable questions claiming one number is a reading fault, not material.**
+  `reading_score` ranks readings by answerable blocks first and by `collided_indices` second. Needed
+  because both readings of the fixture found three questions — coverage could not separate a correct
+  reading from one that binds the wrong answer key.
 
 ## Open product decisions
 
