@@ -114,6 +114,11 @@ export interface DeckCheck {
    * nothing to save yet.
    */
   deck: unknown | null;
+  /**
+   * Folder-level razbiram.com config.json generated for the cleared deck. Null until the deck
+   * passes, because config must reference a releasable deck key.
+   */
+  config: unknown | null;
 }
 
 /**
@@ -130,6 +135,31 @@ export async function checkDeck(deck: unknown, capabilities: string[]): Promise<
   });
   if (!res.ok) throw new Error(`Deck check failed: ${res.status}`);
   return res.json() as Promise<DeckCheck>;
+}
+
+export async function importQuizletUrl(
+  url: string,
+  termLocale: string,
+  definitionLocale: string,
+): Promise<ProcessResponse> {
+  const res = await fetch("/v1/quizlet/import", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ url, termLocale, definitionLocale }),
+  });
+
+  if (!res.ok) {
+    let detail = `Quizlet import failed: ${res.status}`;
+    try {
+      const json = (await res.json()) as { detail?: string };
+      if (json.detail) detail = json.detail;
+    } catch {
+      // Keep the status message.
+    }
+    throw new Error(detail);
+  }
+
+  return res.json() as Promise<ProcessResponse>;
 }
 
 /** GET /health — used to verify the backend is reachable before upload. */

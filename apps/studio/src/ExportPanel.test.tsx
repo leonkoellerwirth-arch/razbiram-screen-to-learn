@@ -47,7 +47,12 @@ const BLOCKED = [
 describe("ExportPanel", () => {
   beforeEach(() => {
     checkDeck.mockReset();
-    checkDeck.mockResolvedValue({ ok: false, errors: ["card q-0002: mark exactly one correct option"], deck: null });
+    checkDeck.mockResolvedValue({
+      ok: false,
+      errors: ["card q-0002: mark exactly one correct option"],
+      deck: null,
+      config: null,
+    });
   });
 
   it("shows the JSON without anyone asking for it", () => {
@@ -85,7 +90,7 @@ describe("ExportPanel", () => {
         deckTitle="clauses"
       />,
     );
-    const download = screen.getByRole("button", { name: /download export json/i });
+    const download = screen.getByRole("button", { name: /download deck-01\.json/i });
     expect((download as HTMLButtonElement).disabled).toBe(true);
     await waitFor(() => expect(checkDeck).toHaveBeenCalled());
     await screen.findByText(/mark exactly one correct option/i);
@@ -93,15 +98,27 @@ describe("ExportPanel", () => {
   });
 
   it("allows the download once the backend clears it", async () => {
-    checkDeck.mockResolvedValue({ ok: true, errors: [], deck: DECK });
+    checkDeck.mockResolvedValue({ ok: true, errors: [], deck: DECK, config: { decks: { "deck-01": {} } } });
     render(
       <ExportPanel
         exportInfo={exportInfo({ deck: null, blocked: BLOCKED, blockedCardIds: ["c-77"] })}
         deckTitle="clauses"
       />,
     );
-    const download = screen.getByRole("button", { name: /download export json/i });
+    const download = screen.getByRole("button", { name: /download deck-01\.json/i });
     await waitFor(() => expect((download as HTMLButtonElement).disabled).toBe(false));
+  });
+
+  it("offers config.json only after the backend clears the deck", async () => {
+    checkDeck.mockResolvedValue({ ok: true, errors: [], deck: DECK, config: { topicKey: "clauses" } });
+    render(
+      <ExportPanel
+        exportInfo={exportInfo({ deck: null, blocked: BLOCKED, blockedCardIds: ["c-77"] })}
+        deckTitle="clauses"
+      />,
+    );
+    const config = screen.getByRole("button", { name: /download config\.json/i });
+    await waitFor(() => expect((config as HTMLButtonElement).disabled).toBe(false));
   });
 
   it("lets a person take the questions away even when nothing is exportable", () => {

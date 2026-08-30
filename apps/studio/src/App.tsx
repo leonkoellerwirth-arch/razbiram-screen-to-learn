@@ -4,7 +4,7 @@
 // hook, same drop zone pattern, same panel structure.  The middle layer
 // (browser-side Anki conversion) is replaced by a POST to /v1/process.
 import { useCallback, useRef, useState } from "react";
-import { processFileStreaming } from "./api";
+import { importQuizletUrl, processFileStreaming } from "./api";
 import type { StageEvent } from "./api";
 import type { ProcessResponse } from "./types";
 import { CardList } from "./CardList";
@@ -72,6 +72,10 @@ function humanSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function localized(value: Record<string, string>): string {
+  return value.en ?? Object.values(value)[0] ?? "";
 }
 
 
@@ -148,11 +152,11 @@ function Result({ result }: { result: ProcessResponse }) {
           ))}
         </div>
         <div style={{ fontWeight: 700, fontSize: 18, margin: "12px 0 4px" }}>
-          {deck.title.en}
+          {localized(deck.title)}
         </div>
-        {deck.description.en && (
+        {localized(deck.description) && (
           <div className="rz-muted" style={{ fontSize: 15, marginBottom: 8 }}>
-            {deck.description.en}
+            {localized(deck.description)}
           </div>
         )}
         <div className="rz-muted" style={{ fontSize: 14 }}>
@@ -180,8 +184,80 @@ function Result({ result }: { result: ProcessResponse }) {
       <CardList cards={captureIr.cards} exportInfo={exportInfo} />
       <UnsupportedSection ids={unsupported} />
       <IssueList issues={issues} />
-      <ExportPanel exportInfo={exportInfo} deckTitle={deck.title.en} />
+      <ExportPanel exportInfo={exportInfo} deckTitle={localized(deck.title)} />
     </div>
+  );
+}
+
+function QuizletImport({
+  onStart,
+  onDone,
+  onError,
+}: {
+  onStart: () => void;
+  onDone: (result: ProcessResponse) => void;
+  onError: (message: string) => void;
+}) {
+  const [url, setUrl] = useState("");
+  const [termLocale, setTermLocale] = useState("en");
+  const [definitionLocale, setDefinitionLocale] = useState("en");
+
+  const submit = useCallback(
+    (event: React.FormEvent) => {
+      event.preventDefault();
+      onStart();
+      importQuizletUrl(url.trim(), termLocale.trim() || "en", definitionLocale.trim() || "en")
+        .then(onDone)
+        .catch((err: unknown) =>
+          onError(err instanceof Error ? err.message : "Quizlet import failed."),
+        );
+    },
+    [definitionLocale, onDone, onError, onStart, termLocale, url],
+  );
+
+  return (
+    <form className="rz-card" onSubmit={submit} style={{ display: "grid", gap: 12 }}>
+      <label style={{ display: "grid", gap: 6 }}>
+        <span style={{ fontWeight: 700 }}>Quizlet flashcards URL</span>
+        <input
+          className="rz-input"
+          value={url}
+          onChange={(event) => setUrl(event.target.value)}
+          placeholder="https://quizlet.com/.../flash-cards/"
+          required
+        />
+      </label>
+
+      <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}>
+        <label style={{ display: "grid", gap: 6 }}>
+          <span style={{ fontWeight: 700 }}>Term language</span>
+          <input
+            className="rz-input"
+            value={termLocale}
+            onChange={(event) => setTermLocale(event.target.value)}
+            maxLength={12}
+          />
+        </label>
+        <label style={{ display: "grid", gap: 6 }}>
+          <span style={{ fontWeight: 700 }}>Definition language</span>
+          <input
+            className="rz-input"
+            value={definitionLocale}
+            onChange={(event) => setDefinitionLocale(event.target.value)}
+            maxLength={12}
+          />
+        </label>
+      </div>
+
+      <p className="rz-muted" style={{ margin: 0, fontSize: 14 }}>
+        Uses Scrapling in a bounded browser session for this one URL. If Quizlet blocks the page,
+        the import stops instead of trying to bypass the challenge.
+      </p>
+
+      <button className="rz-btn rz-btn-primary" type="submit" style={{ minHeight: 44 }}>
+        Import from Quizlet
+      </button>
+    </form>
   );
 }
 
@@ -191,6 +267,7 @@ function Result({ result }: { result: ProcessResponse }) {
 
 export default function App() {
   const [theme, toggleTheme] = useTheme();
+  const [tab, setTab] = useState<"file" | "quizlet">("file");
   const [isOver, setIsOver] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState<Status>({ phase: "idle" });
@@ -271,49 +348,85 @@ export default function App() {
           is invented — and you get a structured deck to review, edit and download.
         </p>
 
-        {/* Drop zone — keyboard-operable via role="button" + tabIndex + onKeyDown */}
-        <div
-          className={`rz-dropzone${isOver ? " is-over" : ""}`}
-          onDragOver={(e) => {
-            e.preventDefault();
-            setIsOver(true);
-          }}
-          onDragLeave={() => setIsOver(false)}
-          onDrop={onDrop}
-          onClick={() => inputRef.current?.click()}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              inputRef.current?.click();
-            }
-          }}
-          role="button"
-          tabIndex={0}
-          aria-label="Drop a screenshot, photo, or an .html or .txt file here, or press Enter to browse"
-        >
-          <input
-            ref={inputRef}
-            type="file"
-            accept={`image/*,${ACCEPTED_SUFFIXES.join(",")},text/html,text/plain`}
-            style={{ display: "none" }}
-            onChange={(e) => accept(e.target.files?.[0])}
-          />
-          <div style={{ fontSize: 40, marginBottom: 8 }}>📄</div>
-          {file ? (
-            <>
-              <div style={{ fontWeight: 700, fontSize: 18 }}>{file.name}</div>
-              <div className="rz-faint" style={{ marginTop: 4 }}>{humanSize(file.size)}</div>
-            </>
-          ) : (
-            <>
-              <div style={{ fontWeight: 700, fontSize: 18 }}>Drop a screenshot or photo here</div>
-              <div className="rz-muted" style={{ marginTop: 4 }}>or click to browse</div>
-              <div className="rz-faint" style={{ marginTop: 6, fontSize: 13 }}>
-                images (read on this machine), .html, .txt
-              </div>
-            </>
-          )}
+        <div role="tablist" aria-label="Import source" style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+          <button
+            className={`rz-btn${tab === "file" ? " rz-btn-primary" : ""}`}
+            role="tab"
+            aria-selected={tab === "file"}
+            onClick={() => setTab("file")}
+            style={{ minHeight: 44 }}
+          >
+            File / screenshot
+          </button>
+          <button
+            className={`rz-btn${tab === "quizlet" ? " rz-btn-primary" : ""}`}
+            role="tab"
+            aria-selected={tab === "quizlet"}
+            onClick={() => setTab("quizlet")}
+            style={{ minHeight: 44 }}
+          >
+            Quizlet URL
+          </button>
         </div>
+
+        {/* Drop zone — keyboard-operable via role="button" + tabIndex + onKeyDown */}
+        {tab === "file" ? (
+          <div
+            className={`rz-dropzone${isOver ? " is-over" : ""}`}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setIsOver(true);
+            }}
+            onDragLeave={() => setIsOver(false)}
+            onDrop={onDrop}
+            onClick={() => inputRef.current?.click()}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                inputRef.current?.click();
+              }
+            }}
+            role="button"
+            tabIndex={0}
+            aria-label="Drop a screenshot, photo, or an .html or .txt file here, or press Enter to browse"
+          >
+            <input
+              ref={inputRef}
+              type="file"
+              accept={`image/*,${ACCEPTED_SUFFIXES.join(",")},text/html,text/plain`}
+              style={{ display: "none" }}
+              onChange={(e) => accept(e.target.files?.[0])}
+            />
+            <div style={{ fontSize: 40, marginBottom: 8 }}>📄</div>
+            {file ? (
+              <>
+                <div style={{ fontWeight: 700, fontSize: 18 }}>{file.name}</div>
+                <div className="rz-faint" style={{ marginTop: 4 }}>{humanSize(file.size)}</div>
+              </>
+            ) : (
+              <>
+                <div style={{ fontWeight: 700, fontSize: 18 }}>Drop a screenshot or photo here</div>
+                <div className="rz-muted" style={{ marginTop: 4 }}>or click to browse</div>
+                <div className="rz-faint" style={{ marginTop: 6, fontSize: 13 }}>
+                  images (read on this machine), .html, .txt
+                </div>
+              </>
+            )}
+          </div>
+        ) : (
+          <QuizletImport
+            onStart={() =>
+              setStatus({
+                phase: "working",
+                since: Date.now(),
+                uploaded: null,
+                stage: { stage: "quizlet", detail: "Capturing Quizlet with Scrapling" },
+              })
+            }
+            onDone={(result) => setStatus({ phase: "done", result })}
+            onError={(message) => setStatus({ phase: "error", message })}
+          />
+        )}
 
         {status.phase === "working" && (
           <ProgressPanel since={status.since} uploaded={status.uploaded} stage={status.stage} />

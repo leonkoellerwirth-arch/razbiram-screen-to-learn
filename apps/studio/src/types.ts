@@ -18,8 +18,8 @@ export interface Target {
 
 export interface DeckMeta {
   deckKey: string;
-  title: { en: string };
-  description: { en: string };
+  title: Record<string, string>;
+  description: Record<string, string>;
   level: string;
   difficulty: string;
   languages: { source: string; target: string };
@@ -37,7 +37,7 @@ export interface Evidence {
 }
 
 export interface LocalisedText {
-  value: { en: string };
+  value: Record<string, string>;
   evidence: string[];
   confidence: number;
 }

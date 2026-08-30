@@ -1,6 +1,6 @@
 /** Failure paths must surface the server's own message, never a silent no-op. */
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { processFile } from "./api";
+import { importQuizletUrl, processFile } from "./api";
 
 const file = () => new File(["<html></html>"], "fixture.html", { type: "text/html" });
 
@@ -37,5 +37,40 @@ describe("processFile", () => {
     const payload = { captureIr: { cards: [] }, issues: [], export: { deck: null } };
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => payload }));
     await expect(processFile(file())).resolves.toEqual(payload);
+  });
+});
+
+describe("importQuizletUrl", () => {
+  it("posts the URL and locale choices", async () => {
+    const payload = { captureIr: { cards: [] }, issues: [], export: { deck: null } };
+    const fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => payload });
+    vi.stubGlobal("fetch", fetch);
+
+    await expect(importQuizletUrl("https://quizlet.com/x", "es", "en")).resolves.toEqual(payload);
+
+    expect(fetch).toHaveBeenCalledWith("/v1/quizlet/import", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        url: "https://quizlet.com/x",
+        termLocale: "es",
+        definitionLocale: "en",
+      }),
+    });
+  });
+
+  it("surfaces the server's detail on failed import", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 503,
+        json: async () => ({ detail: "Scrapling is not installed" }),
+      }),
+    );
+
+    await expect(importQuizletUrl("https://quizlet.com/x", "en", "en")).rejects.toThrow(
+      "Scrapling is not installed",
+    );
   });
 });

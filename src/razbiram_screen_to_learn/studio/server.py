@@ -24,6 +24,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from razbiram_screen_to_learn import __version__
+from razbiram_screen_to_learn.config_export import config_for_deck
 from razbiram_screen_to_learn.contracts import dump_document
 from razbiram_screen_to_learn.draft import check_deck, draft_deck, finalize_deck
 from razbiram_screen_to_learn.ocr import IMAGE_SUFFIXES, OcrUnavailable
@@ -34,6 +35,7 @@ from razbiram_screen_to_learn.pipeline import (
     process_text,
 )
 from razbiram_screen_to_learn.progress import ProgressEvent, ProgressFn
+from razbiram_screen_to_learn.quizlet import process_quizlet_url
 from razbiram_screen_to_learn.textseg import segment
 
 
@@ -173,6 +175,14 @@ class DeckCheckRequest(BaseModel):
     capabilities: list[str] = []
 
 
+class QuizletImportRequest(BaseModel):
+    """A user-triggered bounded Quizlet import."""
+
+    url: str
+    termLocale: str = "en"
+    definitionLocale: str = "en"
+
+
 async def _stream_pipeline(filename: str, raw: bytes) -> AsyncIterator[str]:
     """Run the pipeline on a worker thread and emit its progress as newline-delimited JSON.
 
@@ -225,13 +235,31 @@ def create_app() -> FastAPI:
         behind it. The studio asks before it lets anyone download.
         """
         errors = check_deck(request.deck, capabilities=set(request.capabilities))
+        deck = finalize_deck(request.deck) if not errors else None
         # `deck` is what a caller should actually save: the same content with the draft's working
         # notes removed, so a cleared deck never ships a card still labelled "needs-answer".
         return {
             "ok": not errors,
             "errors": errors,
-            "deck": finalize_deck(request.deck) if not errors else None,
+            "deck": deck,
+            "config": config_for_deck(deck) if deck is not None else None,
         }
+
+    @app.post("/v1/quizlet/import")
+    def quizlet_import(request: QuizletImportRequest) -> dict:
+        """Import one explicit Quizlet URL through Scrapling and the existing export pipeline."""
+        try:
+            return _payload(
+                process_quizlet_url(
+                    request.url,
+                    term_locale=request.termLocale,
+                    definition_locale=request.definitionLocale,
+                )
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        except RuntimeError as exc:
+            raise HTTPException(status_code=503, detail=str(exc)) from exc
 
     @app.post("/v1/process/stream")
     async def process_stream(file: UploadFile) -> StreamingResponse:

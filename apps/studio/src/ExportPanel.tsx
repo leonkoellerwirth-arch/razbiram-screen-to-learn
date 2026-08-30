@@ -26,6 +26,10 @@ function downloadText(json: string, filename: string): void {
   URL.revokeObjectURL(url);
 }
 
+function downloadJson(value: unknown, filename: string): void {
+  downloadText(`${JSON.stringify(value, null, 2)}\n`, filename);
+}
+
 function BlockedList({ blocked }: { blocked: ProcessExport["blocked"] }) {
   if (blocked.length === 0) return null;
   return (
@@ -121,8 +125,13 @@ export default function ExportPanel({
     // cleared deck never ships a card still labelled "needs-answer". Falling back to the editor
     // text covers the untouched-export case, which never had those notes to begin with.
     const payload = check?.deck != null ? `${JSON.stringify(check.deck, null, 2)}\n` : text;
-    downloadText(payload, `${deckTitle || "export"}.json`);
-  }, [downloadable, check, text, deckTitle]);
+    downloadText(payload, "deck-01.json");
+  }, [downloadable, check, text]);
+
+  const onDownloadConfig = useCallback(() => {
+    if (check?.ok !== true || check.config == null) return;
+    downloadJson(check.config, "config.json");
+  }, [check]);
 
   // Always available, even when nothing is exportable. A person who cannot finish the answers here
   // must still be able to take the questions away and finish them elsewhere: the draft carries its
@@ -207,7 +216,20 @@ export default function ExportPanel({
             title={downloadable ? undefined : "This deck does not pass the target's rules yet."}
             style={{ minHeight: 44 }}
           >
-            Download export JSON
+            Download deck-01.json
+          </button>
+          <button
+            className="rz-btn"
+            onClick={onDownloadConfig}
+            disabled={check?.ok !== true || check.config == null}
+            title={
+              check?.ok === true && check.config != null
+                ? undefined
+                : "Validate the deck first; config.json references the final deck key."
+            }
+            style={{ minHeight: 44 }}
+          >
+            Download config.json
           </button>
           <button className="rz-btn" onClick={onDownloadDraft} style={{ minHeight: 44 }}>
             Download draft JSON

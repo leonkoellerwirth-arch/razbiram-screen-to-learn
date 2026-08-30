@@ -260,6 +260,21 @@ a:hover { color: var(--primary-2); }
 }
 .rz-btn-primary:hover { background: var(--primary-2); }
 
+.rz-input {
+  font: inherit;
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  color: var(--text);
+  padding: 8px 12px;
+}
+.rz-input:focus {
+  outline: 2px solid var(--primary-soft);
+  border-color: var(--primary);
+}
+
 /* --- CEFR badges ------------------------------------------------------------ */
 .rz-badge {
   display: inline-block;

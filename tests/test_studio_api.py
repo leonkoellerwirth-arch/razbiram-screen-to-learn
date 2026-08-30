@@ -11,6 +11,7 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
+import razbiram_screen_to_learn.studio.server as server
 from razbiram_screen_to_learn.contracts import dump_document
 from razbiram_screen_to_learn.pipeline import process_markup
 from razbiram_screen_to_learn.studio.server import MAX_UPLOAD_BYTES, create_app
@@ -89,10 +90,13 @@ def test_an_edited_deck_is_judged_by_the_same_rules_as_the_export(client: TestCl
     # What a caller saves: the same deck with the draft's working notes gone.
     assert "status" not in passed["deck"]
     assert all("review" not in card for card in passed["deck"]["cards"])
+    assert passed["config"]["decks"][deck["deckKey"]]
+    assert passed["config"]["accessTier"] == "premium"
 
     deck["cards"][0]["correctAnswer"] = "an answer nobody offered"
     failed = client.post("/v1/deck/check", json={"deck": deck, "capabilities": capabilities}).json()
     assert failed["ok"] is False
+    assert failed["config"] is None
     assert any("correctAnswer" in error for error in failed["errors"])
 
 
@@ -109,6 +113,35 @@ def test_a_draft_nobody_has_fixed_yet_is_refused(client: TestClient) -> None:
         json={"deck": body["export"]["draft"], "capabilities": body["export"]["capabilities"]},
     ).json()
     assert verdict["ok"] is False
+
+
+def test_quizlet_import_uses_the_same_response_shape(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    direct = process_markup(FIXTURE.read_text(encoding="utf-8"))
+    seen: dict[str, str] = {}
+
+    def fake_import(url: str, *, term_locale: str, definition_locale: str):
+        seen.update(url=url, term=term_locale, definition=definition_locale)
+        return direct
+
+    monkeypatch.setattr(server, "process_quizlet_url", fake_import)
+    response = client.post(
+        "/v1/quizlet/import",
+        json={"url": "https://quizlet.com/demo", "termLocale": "es", "definitionLocale": "en"},
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert seen == {"url": "https://quizlet.com/demo", "term": "es", "definition": "en"}
+    assert body["captureIr"] == dump_document(direct.document)
+    assert body["export"]["draft"]["cards"]
+
+
+def test_quizlet_import_rejects_non_quizlet_urls(client: TestClient) -> None:
+    response = client.post("/v1/quizlet/import", json={"url": "https://example.com/cards"})
+    assert response.status_code == 400
+    assert "quizlet.com" in response.json()["detail"]
 
 
 def test_unsupported_file_type_is_rejected(client: TestClient) -> None:

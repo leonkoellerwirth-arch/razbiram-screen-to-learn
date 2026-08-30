@@ -83,5 +83,11 @@
 # 103s instead of 8m26s on that document, with the same nineteen cards. The second is a crash:
 # `LATIN_IDS[i]` raised IndexError on a block of thirty options, losing every other question in the
 # upload.
-DOC_TOKENS_MAX=11870
-SRC_LOC_MAX=4450
+#
+# 2026-07-31 — SRC_LOC_MAX 4450 -> 4988, DOC_TOKENS_MAX 11870 -> 12192. One new bounded import
+# path: captured Quizlet payloads become Capture IR flashcards, then pass through the existing
+# validator/exporter. The added code deliberately does not fetch Quizlet, does not solve CAPTCHA,
+# and does not assemble target JSON independently. The lines buy the parser, CLI seam, and schema
+# tests; the docs budget rise reflects the same session's always-loaded instruction context.
+DOC_TOKENS_MAX=12192
+SRC_LOC_MAX=4988

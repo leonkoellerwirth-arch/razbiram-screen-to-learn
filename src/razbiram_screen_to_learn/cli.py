@@ -15,6 +15,7 @@ from pathlib import Path
 from razbiram_screen_to_learn import __version__
 from razbiram_screen_to_learn.contracts import dump_document
 from razbiram_screen_to_learn.pipeline import LIVE_CAPABILITIES, process_markup
+from razbiram_screen_to_learn.quizlet import process_quizlet_payloads
 
 
 def _read(path: str) -> str:
@@ -59,6 +60,31 @@ def cmd_export(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_quizlet_import(args: argparse.Namespace) -> int:
+    result = process_quizlet_payloads(
+        _read(args.set_payload),
+        api_payloads=[_read(path) for path in args.api_payload],
+        origin=args.origin,
+        path=args.source_path,
+        term_locale=args.term_locale,
+        definition_locale=args.definition_locale,
+        capabilities=_capabilities(args.capability),
+    )
+    for issue in result.issues:
+        if issue.blocking:
+            print(issue, file=sys.stderr)
+    if result.export.deck is None:
+        print("No deck written: every card was blocked.", file=sys.stderr)
+        return 1
+    payload = json.dumps(result.export.deck, indent=2, ensure_ascii=False)
+    if args.output:
+        Path(args.output).write_text(payload + "\n", encoding="utf-8")
+        print(f"Wrote {args.output} ({result.export.deck['meta']['cardCount']} card(s)).")
+    else:
+        print(payload)
+    return 0
+
+
 def cmd_studio(args: argparse.Namespace) -> int:
     from razbiram_screen_to_learn.studio.server import serve
 
@@ -89,6 +115,31 @@ def build_parser() -> argparse.ArgumentParser:
     add_input_command("validate", "report evidence, schema and capability issues", cmd_validate)
     export = add_input_command("export", "project to the target deck profile", cmd_export)
     export.add_argument("-o", "--output", help="write the deck here instead of stdout")
+
+    quizlet = sub.add_parser(
+        "quizlet-import",
+        help="convert captured Quizlet set/API JSON payloads into the target deck profile",
+    )
+    quizlet.add_argument("set_payload", help="Quizlet set HTML, __NEXT_DATA__, or pageProps JSON")
+    quizlet.add_argument(
+        "--api-payload",
+        action="append",
+        default=[],
+        metavar="PATH",
+        help="captured /webapi/3.4/studiable-item-documents JSON payload (repeatable)",
+    )
+    quizlet.add_argument("-o", "--output", help="write the deck here instead of stdout")
+    quizlet.add_argument("--origin", default="https://quizlet.com")
+    quizlet.add_argument("--source-path", default="/quizlet-capture")
+    quizlet.add_argument("--term-locale", default="en")
+    quizlet.add_argument("--definition-locale", default="en")
+    quizlet.add_argument(
+        "--capability",
+        action="append",
+        metavar="ID",
+        help="declare an extra target capability (repeatable)",
+    )
+    quizlet.set_defaults(handler=cmd_quizlet_import)
 
     studio = sub.add_parser("studio", help="serve the local drop-in studio")
     studio.add_argument("--host", default="127.0.0.1", help="loopback only by default")
